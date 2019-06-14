@@ -37,31 +37,32 @@ data <- data %>%
          competing = death_other) 
 
 factors <- c("pf_f", "age_f", "hg_f", "hx")
-factors_cr <- c("pf_f", "age_f", "hg_f", "hx", "competing_plr")
+factors_cr <- c("pf_f", "age_f", "hg_f", "hx")
+factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
 time_fx <-  "time^3"
-
+time_fx_cr <-  "time^2"
 data %>% filter(competing == 1) %>% 
   ggplot(aes(max)) + geom_histogram()
 
 # Person time -------------------------------------------------------------
 
-n_expanding_rows <- max(data$max) + 1
-data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
-
-data_long %<>% 
-  group_by(id) %>% 
-  mutate(
-    time = row_number() - 1,
-    outcome_plr = ifelse(time == max, outcome, 0),
-    competing_plr = ifelse(time == max, competing, 0),
-    no_cr = 1 - competing_plr,
-    cens_plr = ifelse(time == max, cens, 0),
-    no_cens = 1 - cens) %>% 
-  filter(time <= max) %>%
-  filter(time <60) %>% 
-  ungroup() %>% 
-  arrange(id, time)
-
+# n_expanding_rows <- max(data$max) + 1
+# data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
+# 
+# data_long %<>% 
+#   group_by(id) %>% 
+#   mutate(
+#     time = row_number() - 1,
+#     outcome_plr = ifelse(time == max, outcome, 0),
+#     competing_plr = ifelse(time == max, competing, 0),
+#     no_cr = 1 - competing_plr,
+#     cens_plr = ifelse(time == max, cens, 0),
+#     no_cens = 1 - cens) %>% 
+#   filter(time <= max) %>%
+#   filter(time <60) %>% 
+#   ungroup() %>% 
+#   arrange(id, time)
+# 
 # Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
 results <- direct_gf(data, factors, time_fx)
 
@@ -70,6 +71,7 @@ bootresults <- bootsamples(data, 100, factors,
 
 effect_measures <- risk_diff_ratio(results, bootresults)
 
+effect_measures %>% filter(time ==60)
 # surv_curves(results, bootresults, control = "a",
 #        intervention = "b",
 #        title = "test gform",
@@ -86,12 +88,12 @@ cif_curves(results, bootresults, control = "placebo",
 
 # Direct effect IPW (Only WD) ---------------------------------------------
 
-res_ipw_cr <- direct_ipw(data, factors, time_fx)
-boots_ipw_cr <- bootsamples(data, 100, factors, time_fx, direct_ipw)
+res_ipw_cr <- direct_ipw_pr(data, factors, time_fx)
+boots_ipw_cr <- bootsamples(data, 50, factors, time_fx, direct_ipw_pr)
 
 
 effect_measures_ipw_cr <- risk_diff_ratio(res_ipw_cr, boots_ipw_cr)
-
+effect_measures_ipw_cr
 # surv_curves(res_ipw_cr, boots_ipw_cr, control = "placebo",
 #        intervention = "control",
 #        title = "Direct effect with IPW",
