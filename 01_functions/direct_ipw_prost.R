@@ -1,7 +1,7 @@
-direct_ipw <- function(data, factors, time_fx) {
+direct_ipw_pr <- function(data, factors, time_fx) {
   
   #transform from wide to long and create necessary variables
-  n_expanding_rows <- max(data$max) + 1
+  n_expanding_rows <- 60 + 1
   
   data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
@@ -21,11 +21,11 @@ direct_ipw <- function(data, factors, time_fx) {
   
   # Create weights ----------------------------------------------------------
   num_cr <- glm(no_cr ~ 1, data=data_long, family=binomial())
-  model_denom_cr <- reformulate(termlabels = factors, response = "no_cr")
+  model_denom_cr <- as.formula(paste(glue("no_cr ~ (exposure) + I({time_fx_cr}) +"), paste(factors_cr, collapse="+")))
   denom_cr <- glm(model_denom_cr, data=data_long, family=binomial())
   
   num_cens <- glm(no_cens ~ 1, data = subset(data_long, time>50), family=binomial())
-  model_denom_cens <- reformulate(termlabels = factors, response = "no_cens")
+  model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <- glm(model_denom_cens, data=subset(data_long, time>50), family=binomial())
   
   data_long %<>%
