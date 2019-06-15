@@ -1,15 +1,17 @@
 # Risk difference and risk ratio ------------------------------------------
 
-risk_diff_ratio <- function(data_results, data_boot){
-    results_wide <- data_results %>%
-      select(-mean_survival) %>% 
+risk_diff_ratio <- function(data_results){
+  results_wide <- data_results %>%
+      filter(is.na(sample)) %>%
+      select(-c(mean_survival, sample)) %>% 
     mutate(exposure = ifelse(exposure == 1, "exposure", "control")) %>% 
     spread(exposure, mean_cif) %>% 
     mutate(
       rd = round((exposure - control),4),
       rr = round((exposure)/(control),4))
   
-  boots_wide <- data_boot %>% 
+  boots_wide <- data_results %>% 
+    filter(!is.na(sample)) %>% 
     select(-mean_survival) %>% 
     mutate(exposure = ifelse(exposure == 1, "exposure", "control")) %>% 
     spread(exposure, mean_cif) %>% 
@@ -30,17 +32,19 @@ risk_diff_ratio <- function(data_results, data_boot){
 }
 
 
-surv_diff_ratio <- function(data_results, data_boot){
+surv_diff_ratio <- function(data_results){
   
   results_wide <- data_results %>%
-    select(-mean_cif) %>% 
+    filter(is.na(sample)) %>%
+    select(-c(mean_cif, sample)) %>% 
     mutate(exposure = ifelse(exposure == 1, "exposure", "control")) %>% 
     spread(exposure, mean_survival) %>% 
     mutate(
       rd = round(100*((1-exposure) - (1-control)),2),
       rr = round((1-exposure)/(1-control),2))
   
-  boots_wide <- data_boot %>% 
+  boots_wide <- data_results %>% 
+    filter(!is.na(sample)) %>% 
     select(-mean_cif) %>% 
     mutate(exposure = ifelse(exposure == 1, "exposure", "control")) %>% 
     spread(exposure, mean_survival) %>% 

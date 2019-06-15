@@ -5,6 +5,7 @@ source("01_functions/direct_gf_prost.R")
 source("01_functions/bootsamples.R")
 source("01_functions/risk_diff_ratio.R")
 source("01_functions/survival_graph.R")
+source("01_functions/wrapper.R")
 
 # Data setup --------------------------------------------------------------
 
@@ -69,7 +70,9 @@ results <- direct_gf(data, factors, time_fx)
 bootresults <- bootsamples(data, 100, factors,
                            time_fx, surv_model = direct_gf)
 
-effect_measures <- risk_diff_ratio(results, bootresults)
+output <- wrapper(data, factors, time_fx, 10, direct_gf)
+
+effect_measures <- risk_diff_ratio(output)
 
 effect_measures %>% filter(time ==60)
 # surv_curves(results, bootresults, control = "a",
@@ -79,12 +82,17 @@ effect_measures %>% filter(time ==60)
 #        limit_end = 60,
 #        breaks = 10)
 
-cif_curves(results, bootresults, control = "placebo",
+surv_curves(output, control = "placebo",
            intervention = "High-dose DES",
            title = "Direct effect with G-Formula",
            xaxis = "months",
            limit_end = 60,
            breaks = 10)
+
+surv_curves(output,
+            xaxis = "months",
+            limit_end = 60,
+            breaks = 10)
 
 # Direct effect IPW (Only WD) ---------------------------------------------
 
@@ -120,7 +128,7 @@ boots_cr <- bootsamples(data, 10, factors, time_fx, survival_cr)
 
 effect_measures_cr <- risk_diff_ratio(res_cr, boots_cr)
 
-surv_curves(res_cr, boots_cr, control = "a",
+cif_curves(res_cr, boots_cr, control = "a",
             intervention = "b",
             title = "test gform with cr",
             xaxis = "months",
