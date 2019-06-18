@@ -40,7 +40,7 @@ data <- data %>%
 # Define arguments
 
 y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
-d_model <- c("exposure*(time + I(time^2))", "pf_f", "age_f", "hg_f", "hx")
+d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 
 number_rows <- 60
@@ -71,18 +71,18 @@ data %>% filter(competing == 1) %>%
 
 # Direct effect IPW (Only WD) ---------------------------------------------
 
-res_ipw_cr <- direct_ipw_pr(data, 
-                            factors_outcome, 
-                            factors_cens, 
-                            factors_cr,
-                            rows = number_rows)
-boots_ipw_cr <- bootsamples(data, n = 20,
-                            seed = 123,
-                            factors_outcome,
-                            factors_cens,
-                            factors_cr,
-                            rows = number_rows,
-                            surv_model = direct_ipw_pr)
+# res_ipw_cr <- direct_ipw_pr(data, 
+#                             factors_outcome, 
+#                             factors_cens, 
+#                             factors_cr,
+#                             rows = number_rows)
+# boots_ipw_cr <- bootsamples(data, n = 20,
+#                             seed = 123,
+#                             factors_outcome,
+#                             factors_cens,
+#                             factors_cr,
+#                             rows = number_rows,
+#                             surv_model = direct_ipw_pr)
 
 results_wrapper <- wrapper(
   data,
