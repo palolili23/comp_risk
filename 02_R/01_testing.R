@@ -37,12 +37,12 @@ data <- data %>%
          outcome = death_pr,
          competing = death_other) 
 
-factors <- c("pf_f", "age_f", "hg_f", "hx")
-factors_cr <- c("pf_f", "age_f", "hg_f", "hx")
+factors_outcome <- c("exposure*I(time^3)", "pf_f", "age_f", "hg_f", "hx")
+factors_cr <- c("exposure*I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
-time_fx <-  "time^3"
-time_fx_cr <-  "time^2"
-data %>% filter(competing == 1) %>% 
+
+number_rows <- 60
+data %>% filter(cens == 1) %>% 
   ggplot(aes(max)) + geom_histogram()
 
 # Person time -------------------------------------------------------------
@@ -96,12 +96,30 @@ surv_curves(output,
 
 # Direct effect IPW (Only WD) ---------------------------------------------
 
-res_ipw_cr <- direct_ipw_pr(data, factors, time_fx)
-boots_ipw_cr <- bootsamples(data, 50, factors, time_fx, direct_ipw_pr)
+res_ipw_cr <- direct_ipw_pr(data, 
+                            factors_outcome, 
+                            factors_cens, 
+                            factors_cr,
+                            rows = number_rows)
+boots_ipw_cr <- bootsamples(data, n = 20,
+                            seed = 123,
+                            factors_outcome,
+                            factors_cens,
+                            factors_cr,
+                            rows = number_rows,
+                            surv_model = direct_ipw_pr)
 
+results_wrapper <- wrapper(
+  data,
+  surv_model = direct_ipw_pr,
+  factors_outcome,
+  factors_cens,
+  factors_cr,
+  rows = number_rows,
+  n = 20)
 
-effect_measures_ipw_cr <- risk_diff_ratio(res_ipw_cr, boots_ipw_cr)
-effect_measures_ipw_cr
+effect_measures_ipw_cr <- risk_diff_ratio(results_wrapper)
+effect_measures_ipw_cr %>% filter(time == 60)
 # surv_curves(res_ipw_cr, boots_ipw_cr, control = "placebo",
 #        intervention = "control",
 #        title = "Direct effect with IPW",
@@ -109,13 +127,14 @@ effect_measures_ipw_cr
 #        limit_end = 60,
 #        breaks = 10)
 
-cif_curves(res_ipw_cr, boots_ipw_cr, control = "placebo",
+surv_curves(results_wrapper)
+cif_curves(results_wrapper, breaks = 10)
+surv_curves(results_wrapper, control = "placebo",
             intervention = "High-dose DES",
-            title = "Direct effect with IPW",
+            title = "Direct effect of DES in Prostate cancer death with IPW",
             xaxis = "months",
-            limit_end = 60,
+            limit_end = 61,
             breaks = 10)
-
 
 effect_measures %>% filter(time == 60)
 effect_measures_ipw_cr %>% filter(time == 60)
