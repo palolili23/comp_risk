@@ -1,7 +1,9 @@
-direct_gf <- function(data, factors, time_fx) {
+direct_gf <- function(data, factors_outcome,
+                      rows = max(data$max)){
   
   #transform from wide to long and create necessary variables
-  n_expanding_rows <- max(data$max) + 1
+  n_expanding_rows <- rows + 1
+  
   data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
   data_long %<>% 
@@ -14,13 +16,11 @@ direct_gf <- function(data, factors, time_fx) {
       cens_plr = ifelse(time == max, cens, 0),
       no_cens = 1 - cens) %>% 
     filter(time <= max) %>%
-    filter(time <60) %>% 
     ungroup() %>% 
     arrange(id, time)
   
   #fit the model
-  
-  model <- as.formula(paste(glue("outcome_plr ~ (exposure) * (time + I({time_fx})) +"), paste(factors, collapse="+")))
+  model <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
   adj_plr <- glm(model, data = data_long, family = binomial)
   
   #create clones

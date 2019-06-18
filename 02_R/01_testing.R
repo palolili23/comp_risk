@@ -39,9 +39,9 @@ data <- data %>%
 
 # Define arguments
 
-factors_outcome <- c("exposure*I(time^3)", "pf_f", "age_f", "hg_f", "hx")
-factors_cr <- c("exposure*I(time^2)", "pf_f", "age_f", "hg_f", "hx")
-factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
+y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+d_model <- c("exposure*(time + I(time^2))", "pf_f", "age_f", "hg_f", "hx")
+c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 
 number_rows <- 60
 data %>% filter(cens == 1) %>% 
@@ -87,9 +87,9 @@ boots_ipw_cr <- bootsamples(data, n = 20,
 results_wrapper <- wrapper(
   data,
   surv_model = direct_ipw_pr,
-  factors_outcome,
-  factors_cens,
-  factors_cr,
+  factors_outcome = y_model,
+  factors_cens = c_model,
+  factors_cr = d_model,
   rows = number_rows,
   n = 20)
 
@@ -111,10 +111,12 @@ surv_curves(results_wrapper, control = "placebo",
 effect_measures_ipw_cr %>% filter(time == 60)
 
 # Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
-results <- direct_gf(data, factors, time_fx)
+results <- direct_gf(data, factors_outcome = y_model, rows = number_rows)
 
-bootresults <- bootsamples(data, 100, factors,
-                           time_fx, surv_model = direct_gf)
+bootresults <- bootsamples(data, n = 100, seed = 123,
+                           factors_outcome = factors_outcome,
+                           rows = number_rows,
+                           surv_model = direct_gf)
 
 output <- wrapper(data, factors, time_fx, 10, direct_gf)
 
