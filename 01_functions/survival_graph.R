@@ -1,12 +1,11 @@
 # CIF graph ---------------------------------------------------------------
-cif_curves <-
-  function(data_results,
-           control,
-           intervention,
-           title,
-           xaxis,
-           limit_end,
-           breaks){
+cif_curves <- function(data_results,
+                    control = "control",
+                    intervention = "intervention",
+                    title = "Direct effect using IPW",
+                    xaxis = "Time",
+                    limit_end = max(results$time),
+                    breaks = 1){
     results <- data_results %>%
       filter(is.na(sample)) %>%
       select(-sample) %>%
