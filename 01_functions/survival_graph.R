@@ -1,5 +1,4 @@
-# Survival graph ----------------------------------------------------------
-
+# CIF graph ---------------------------------------------------------------
 cif_curves <-
   function(data_results,
            control,
@@ -7,7 +6,7 @@ cif_curves <-
            title,
            xaxis,
            limit_end,
-           breaks) {
+           breaks){
     results <- data_results %>%
       filter(is.na(sample)) %>%
       select(-sample) %>%
@@ -28,11 +27,13 @@ cif_curves <-
              risk_min = 0,
              risk_max = 0)
     
-    results %>%
+    results %<>%
       left_join(boot_samples) %>%
       mutate(time = time + 1) %>%
-      bind_rows(results0) %>%
-      ggplot() +
+      bind_rows(results0) 
+    
+    results %>%
+            ggplot() +
       aes(x = time, y = risk, group = exposure) +
       geom_line(aes(color = exposure), size = 0.8) +
       scale_color_manual(values = c("#235AA7", "#FFDB6D")) +
@@ -49,15 +50,17 @@ cif_curves <-
       theme(legend.position = 'bottom')
   }
 
-surv_curves <-
-  function(data_results,
-           control = "Control",
-           intervention  = "Intervention",
-           title = "Title",
-           xaxis,
-           limit_end,
-           breaks) {
-    results <- data_results %>%
+# Survival graph ----------------------------------------------------------
+
+surv_curves <- function(data_results,
+           control = "control",
+           intervention = "intervention",
+           title = "Direct effect using IPW",
+           xaxis = "Time",
+           limit_end = max(results$time),
+           breaks = 1){
+  
+  results <- data_results %>%
       filter(is.na(sample)) %>%
       select(-sample) %>%
       mutate(risk = round((mean_survival), 4),
@@ -77,10 +80,12 @@ surv_curves <-
              risk_min = 1,
              risk_max = 1)
     
-    results %>%
+    results %<>%
       left_join(boot_samples) %>%
       mutate(time = time + 1) %>%
-      bind_rows(results0) %>%
+      bind_rows(results0)
+    
+    results %>%
       ggplot() +
       aes(x = time, y = risk, group = exposure) +
       geom_line(aes(color = exposure), size = 0.8) +
