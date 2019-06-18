@@ -37,12 +37,16 @@ data <- data %>%
          outcome = death_pr,
          competing = death_other) 
 
+# Define arguments
+
 factors_outcome <- c("exposure*I(time^3)", "pf_f", "age_f", "hg_f", "hx")
 factors_cr <- c("exposure*I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
 
 number_rows <- 60
 data %>% filter(cens == 1) %>% 
+  ggplot(aes(max)) + geom_histogram()
+data %>% filter(competing == 1) %>% 
   ggplot(aes(max)) + geom_histogram()
 
 # Person time -------------------------------------------------------------
@@ -64,35 +68,6 @@ data %>% filter(cens == 1) %>%
 #   ungroup() %>% 
 #   arrange(id, time)
 # 
-# Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
-results <- direct_gf(data, factors, time_fx)
-
-bootresults <- bootsamples(data, 100, factors,
-                           time_fx, surv_model = direct_gf)
-
-output <- wrapper(data, factors, time_fx, 10, direct_gf)
-
-effect_measures <- risk_diff_ratio(output)
-
-effect_measures %>% filter(time ==60)
-# surv_curves(results, bootresults, control = "a",
-#        intervention = "b",
-#        title = "test gform",
-#        xaxis = "months",
-#        limit_end = 60,
-#        breaks = 10)
-
-surv_curves(output, control = "placebo",
-           intervention = "High-dose DES",
-           title = "Direct effect with G-Formula",
-           xaxis = "months",
-           limit_end = 60,
-           breaks = 10)
-
-surv_curves(output,
-            xaxis = "months",
-            limit_end = 60,
-            breaks = 10)
 
 # Direct effect IPW (Only WD) ---------------------------------------------
 
@@ -120,15 +95,11 @@ results_wrapper <- wrapper(
 
 effect_measures_ipw_cr <- risk_diff_ratio(results_wrapper)
 effect_measures_ipw_cr %>% filter(time == 60)
-# surv_curves(res_ipw_cr, boots_ipw_cr, control = "placebo",
-#        intervention = "control",
-#        title = "Direct effect with IPW",
-#        xaxis = "months",
-#        limit_end = 60,
-#        breaks = 10)
 
 surv_curves(results_wrapper)
+
 cif_curves(results_wrapper, breaks = 10)
+
 surv_curves(results_wrapper, control = "placebo",
             intervention = "High-dose DES",
             title = "Direct effect of DES in Prostate cancer death with IPW",
@@ -136,8 +107,38 @@ surv_curves(results_wrapper, control = "placebo",
             limit_end = 61,
             breaks = 10)
 
-effect_measures %>% filter(time == 60)
+
 effect_measures_ipw_cr %>% filter(time == 60)
+
+# Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
+results <- direct_gf(data, factors, time_fx)
+
+bootresults <- bootsamples(data, 100, factors,
+                           time_fx, surv_model = direct_gf)
+
+output <- wrapper(data, factors, time_fx, 10, direct_gf)
+
+effect_measures <- risk_diff_ratio(output)
+
+effect_measures %>% filter(time ==60)
+# surv_curves(results, bootresults, control = "a",
+#        intervention = "b",
+#        title = "test gform",
+#        xaxis = "months",
+#        limit_end = 60,
+#        breaks = 10)
+
+surv_curves(output, control = "placebo",
+            intervention = "High-dose DES",
+            title = "Direct effect with G-Formula",
+            xaxis = "months",
+            limit_end = 60,
+            breaks = 10)
+
+surv_curves(output,
+            xaxis = "months",
+            limit_end = 60,
+            breaks = 10)
 
 # Total effects with g-formula Pr(Ya,c=0) ------------------------------------------------------------------
 
