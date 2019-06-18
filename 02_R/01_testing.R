@@ -1,11 +1,8 @@
 # Functions ---------------------------------------------------------------
 source("02_R/00_call_libraries.R")
-source("01_functions/direct_ipw_prost.R")
-source("01_functions/direct_gf_prost.R")
-source("01_functions/bootsamples.R")
 source("01_functions/risk_diff_ratio.R")
 source("01_functions/survival_graph.R")
-source("01_functions/wrapper.R")
+
 
 # Data setup --------------------------------------------------------------
 
@@ -84,7 +81,12 @@ data %>% filter(competing == 1) %>%
 #                             rows = number_rows,
 #                             surv_model = direct_ipw_pr)
 
-results_wrapper <- wrapper(
+
+source("01_functions/36_direct_ipw_prost.R")
+source("01_functions/36_bootsamples.R")
+source("01_functions/36_wrapper.R")
+
+results_wrapper <- direct_ipw_pr_helper(
   data,
   surv_model = direct_ipw_pr,
   factors_outcome = y_model,
@@ -111,36 +113,30 @@ surv_curves(results_wrapper, control = "placebo",
 effect_measures_ipw_cr %>% filter(time == 60)
 
 # Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
-results <- direct_gf(data, factors_outcome = y_model, rows = number_rows)
+source("01_functions/35_direct_gf_prost.R")
+source("01_functions/35_bootsamples.R")
+source("01_functions/35_wrapper.R")
 
-bootresults <- bootsamples(data, n = 100, seed = 123,
-                           factors_outcome = factors_outcome,
-                           rows = number_rows,
-                           surv_model = direct_gf)
 
-output <- wrapper(data, factors, time_fx, 10, direct_gf)
+y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+number_rows <- 60
+
+results <- direct_gf_pr(data, factors_outcome = y_model, rows = number_rows)
+
+bootresults <- bootsamples35(data, n = 100, seed = 123,
+                           factors_outcome = y_model,
+                           rows = number_rows)
+
+output <- direct_gf_pr_helper(data, factors_outcome = y_model,
+                              n = 10,
+                              seed = 123, 
+                              surv_model = direct_gf_pr)
 
 effect_measures <- risk_diff_ratio(output)
 
 effect_measures %>% filter(time ==60)
-# surv_curves(results, bootresults, control = "a",
-#        intervention = "b",
-#        title = "test gform",
-#        xaxis = "months",
-#        limit_end = 60,
-#        breaks = 10)
-
-surv_curves(output, control = "placebo",
-            intervention = "High-dose DES",
-            title = "Direct effect with G-Formula",
-            xaxis = "months",
-            limit_end = 60,
-            breaks = 10)
-
-surv_curves(output,
-            xaxis = "months",
-            limit_end = 60,
-            breaks = 10)
+surv_curves(output, breaks = 10)
+cif_curves(output, breaks = 10, title = "Direct effect using G-formula")
 
 # Total effects with g-formula Pr(Ya,c=0) ------------------------------------------------------------------
 

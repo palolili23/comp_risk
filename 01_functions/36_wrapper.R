@@ -3,7 +3,7 @@
 ## However the idea of doing them step by step is great to understand what is
 ## going on in the 
 
-wrapper <- function(data, surv_model,
+direct_ipw_pr_helper <- function(data, surv_model,
                     factors_outcome,
                     factors_cens,
                     factors_cr,

@@ -2,7 +2,7 @@
 cif_curves <- function(data_results,
                     control = "control",
                     intervention = "intervention",
-                    title = "Direct effect using IPW",
+                    title = "Standardized CIF",
                     xaxis = "Time",
                     limit_end = max(results$time),
                     breaks = 1){
@@ -54,7 +54,7 @@ cif_curves <- function(data_results,
 surv_curves <- function(data_results,
            control = "control",
            intervention = "intervention",
-           title = "Direct effect using IPW",
+           title = "Standardized survival probability",
            xaxis = "Time",
            limit_end = max(results$time),
            breaks = 1){

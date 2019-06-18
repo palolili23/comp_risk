@@ -1,4 +1,4 @@
-direct_gf <- function(data, factors_outcome,
+direct_gf_pr <- function(data, factors_outcome,
                       rows = max(data$max)){
   
   #transform from wide to long and create necessary variables
