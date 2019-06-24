@@ -98,7 +98,7 @@ results_wrapper <- direct_ipw_pr_helper(
 effect_measures_ipw_cr <- risk_diff_ratio(results_wrapper)
 effect_measures_ipw_cr %>% filter(time == 60)
 
-surv_curves(results_wrapper)
+surv_curves(results_wrapper, breaks = 10)
 
 cif_curves(results_wrapper, breaks = 10)
 
@@ -137,6 +137,14 @@ effect_measures <- risk_diff_ratio(output)
 effect_measures %>% filter(time ==60)
 surv_curves(output, breaks = 10)
 cif_curves(output, breaks = 10, title = "Direct effect using G-formula")
+
+surv_curves(output, control = "placebo",
+            intervention = "High-dose DES",
+            title = "Direct effect of DES in Prostate cancer death with IPW",
+            xaxis = "months",
+            limit_end = 61,
+            breaks = 10)
+
 
 # Total effects with g-formula Pr(Ya,c=0) ------------------------------------------------------------------
 
