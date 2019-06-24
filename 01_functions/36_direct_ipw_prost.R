@@ -65,8 +65,8 @@ direct_ipw_pr <- function(data,
     )
   
   data_long <- data_long %>%
-    mutate(sw = ifelse(sw > 10, 10, sw))
-  
+    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
+
   # fit of weighted hazards model
   model <-
     reformulate(termlabels = factors_outcome, response = "outcome_plr")

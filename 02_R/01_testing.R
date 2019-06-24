@@ -86,6 +86,7 @@ source("01_functions/36_direct_ipw_prost.R")
 source("01_functions/36_bootsamples.R")
 source("01_functions/36_wrapper.R")
 
+### Using weights truncated in 95%, if 99% it does not converge
 results_wrapper <- direct_ipw_pr_helper(
   data,
   surv_model = direct_ipw_pr,
@@ -93,22 +94,19 @@ results_wrapper <- direct_ipw_pr_helper(
   factors_cens = c_model,
   factors_cr = d_model,
   rows = number_rows,
-  n = 20)
+  seed = 123,
+  n = 100)
 
 effect_measures_ipw_cr <- risk_diff_ratio(results_wrapper)
-effect_measures_ipw_cr %>% filter(time == 60)
 
-surv_curves(results_wrapper, breaks = 10)
-
-cif_curves(results_wrapper, breaks = 10)
-
-surv_curves(results_wrapper, control = "placebo",
+cif_curves(results_wrapper, control = "placebo",
             intervention = "High-dose DES",
             title = "Direct effect of DES in Prostate cancer death with IPW",
             xaxis = "months",
             limit_end = 61,
             breaks = 10)
 
+surv_curves(results_wrapper, breaks = 10)
 
 effect_measures_ipw_cr %>% filter(time == 60)
 
@@ -134,17 +132,15 @@ output <- direct_gf_pr_helper(data, factors_outcome = y_model,
 
 effect_measures <- risk_diff_ratio(output)
 
-effect_measures %>% filter(time ==60)
-surv_curves(output, breaks = 10)
-cif_curves(output, breaks = 10, title = "Direct effect using G-formula")
-
-surv_curves(output, control = "placebo",
+cif_curves(output, control = "placebo",
             intervention = "High-dose DES",
-            title = "Direct effect of DES in Prostate cancer death with IPW",
+            title = "Direct effect of DES in Prostate cancer death with G-formula",
             xaxis = "months",
             limit_end = 61,
             breaks = 10)
 
+surv_curves(output, breaks = 10)
+effect_measures %>% filter(time ==60)
 
 # Total effects with g-formula Pr(Ya,c=0) ------------------------------------------------------------------
 
