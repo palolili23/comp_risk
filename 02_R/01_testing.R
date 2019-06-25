@@ -126,7 +126,7 @@ bootresults <- bootsamples35(data, n = 100, seed = 123,
                            rows = number_rows)
 
 output <- direct_gf_pr_helper(data, factors_outcome = y_model,
-                              n = 10,
+                              n = 100,
                               seed = 123, 
                               surv_model = direct_gf_pr)
 
@@ -140,6 +140,44 @@ cif_curves(output, control = "placebo",
             breaks = 10)
 
 surv_curves(output, breaks = 10)
+effect_measures %>% filter(time ==60)
+
+
+
+
+# Direct effects with IPW: Cause-specific hazard approach -----------------
+source("01_functions/39_total_ipwcs_pr.R")
+source("01_functions/39_bootsamples.R")
+source("01_functions/39_wrapper.R")
+
+y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+number_rows <- 60
+
+results_total <- total_ipwcs_pr(data, factors_outcome = y_model, 
+                          factors_cens = c_model,
+                          rows = number_rows)
+
+bootresults_total <- bootsamples39(data, n = 100, seed = 123,
+                             factors_outcome = y_model,
+                             factors_cens = c_model,
+                             rows = number_rows)
+
+output_total <- total_ipwcs_helper(data, factors_outcome = y_model,
+                               factors_cens = c_model,
+                               n = 100, seed = 123)
+
+
+effect_measures <- risk_diff_ratio(output_total)
+
+cif_curves(output_total, control = "placebo",
+           intervention = "High-dose DES",
+           title = "Total effect of DES in Prostate cancer death with IPWcs",
+           xaxis = "months",
+           limit_end = 61,
+           breaks = 10)
+
+surv_curves(output_total, breaks = 10)
 effect_measures %>% filter(time ==60)
 
 # Total effects with g-formula Pr(Ya,c=0) ------------------------------------------------------------------
