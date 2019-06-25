@@ -1,5 +1,3 @@
-# Total effect for IPW cs
-
 total_ipwcs_pr <- function(data,
                           factors_outcome,
                           factors_cens,
@@ -61,6 +59,10 @@ total_ipwcs_pr <- function(data,
                  data = data_long,
                  family = quasibinomial(),
                  weights = sw)
+  
+  data_long <- data_long %>%
+    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
+  
   #create clones
   data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
