@@ -14,7 +14,7 @@ total_ipwcs_pr <- function(data,
       time = row_number() - 1,
       outcome_plr = ifelse(time == max, outcome, 0),
       cens_plr = ifelse(time == max, cens, 0),
-      no_cens = 1 - cens
+      no_cens = 1 - cens_plr,
     ) %>%
     filter(time <= max) %>%
     ungroup() %>%
@@ -50,7 +50,7 @@ total_ipwcs_pr <- function(data,
     )
   
   data_long <- data_long %>%
-    mutate(sw = ifelse(sw > 10, 10, sw))
+    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
   
   # fit of weighted hazards model
   model <-
@@ -59,10 +59,7 @@ total_ipwcs_pr <- function(data,
                  data = data_long,
                  family = quasibinomial(),
                  weights = sw)
-  
-  data_long <- data_long %>%
-    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
-  
+
   #create clones
   data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
