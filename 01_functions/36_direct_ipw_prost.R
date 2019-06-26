@@ -17,7 +17,7 @@ direct_ipw_pr <- function(data,
       competing_plr = ifelse(time == max, competing, 0),
       no_cr = 1 - competing_plr,
       cens_plr = ifelse(time == max, cens, 0),
-      no_cens = 1 - cens
+      no_cens = 1 - cens_plr,
     ) %>%
     filter(time <= max) %>%
     ungroup() %>%
@@ -32,13 +32,13 @@ direct_ipw_pr <- function(data,
   
   num_cens <-
     glm(no_cens ~ 1,
-        data = subset(data_long, time > 50),
+        data = subset(data_long, time >= 50),
         family = binomial())
   model_denom_cens <-
     reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <-
     glm(model_denom_cens,
-        data = subset(data_long, time > 50),
+        data = subset(data_long, time >= 50),
         family = binomial())
   
   data_long %<>%
@@ -46,9 +46,9 @@ direct_ipw_pr <- function(data,
       cr_num = predict(num_cr, data_long, type = "response"),
       cr_denom = predict(denom_cr, data_long, type = "response"),
       cens_num = predict(num_cens, data_long, type = "response"),
-      cens_num = ifelse(time <= 50, 1, cens_num),
+      cens_num = ifelse(time < 50, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time <= 50, 1, cens_denom)
+      cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
     group_by(id) %>%
     mutate(
