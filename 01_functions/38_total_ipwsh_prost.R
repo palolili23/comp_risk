@@ -56,7 +56,7 @@ total_ipwsh_pr <- function(data,
     )
   
   data_long <- data_long %>%
-    mutate(sw = ifelse((sw > quantile(sw, 0.99)), quantile(sw, 0.99), sw))
+    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
   
   # fit of weighted hazards model
   model <-
