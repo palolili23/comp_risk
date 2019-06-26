@@ -11,8 +11,9 @@ total_ipwcs_helper <- function(data, factors_outcome,
   
   results <- total_ipwcs_pr(data, factors_outcome, factors_cens, rows)
   
-  bootresults <- bootsamples35(data, n, seed,
+  bootresults <- bootsamples39(data, n, seed,
                                factors_outcome,
+                               factors_cens,
                                rows)
   
   binded <- results %>% bind_rows(bootresults)
