@@ -26,7 +26,16 @@ risk_diff_ratio <- function(data_results){
   
   risk_difference <- results_wide %>% 
     left_join(boots_wide) %>% 
-    select(time, starts_with("rd"), starts_with("rr"))
+    select(time, exposure, control, starts_with("rd"), starts_with("rr")) %>% 
+    mutate_if(is.numeric, round, 3) %>% 
+    unite(`RD CI95%`, c("rd_min", "rd_max"), sep =", ", remove = TRUE) %>%
+    unite(`RR CI95%`, c("rr_min", "rr_max"), sep =", ", remove = TRUE) %>%
+    rename(
+      `Risk Ya=1` = exposure,
+      `Risk Ya=0` = control,
+      `Risk Rifference` = rd,
+      `Risk Ratio` = rr
+    )
   
   return(risk_difference)
 }
