@@ -5,7 +5,8 @@ cif_curves <- function(data_results,
                     title = "Standardized CIF",
                     xaxis = "Time",
                     limit_end = max(results$time),
-                    breaks = 1){
+                    breaks = 1,
+                    max_cif = round(max(results$risk),1) + 0.2){
     results <- data_results %>%
       filter(is.na(sample)) %>%
       select(-sample) %>%
@@ -18,7 +19,7 @@ cif_curves <- function(data_results,
              exposure = ifelse(exposure == 0, control, intervention)) %>%
       group_by(exposure, time) %>%
       summarise(risk_min = quantile(risk, 0.025),
-                risk_max = quantile(risk, 0.975))
+                risk_max = quantile(risk,  0.975))
     
     results0 <- results %>%
       filter(time == 0) %>%
@@ -45,6 +46,8 @@ cif_curves <- function(data_results,
       ) +
       scale_x_continuous(limits = c(0, limit_end),
                          breaks = seq(0, limit_end, breaks)) +
+      scale_y_continuous(limits = c(0, max_cif),
+                         breaks = seq(0, max_cif, 0.1)) +
       theme_minimal() +
       theme(legend.position = 'bottom')
   }
@@ -57,7 +60,8 @@ surv_curves <- function(data_results,
            title = "Standardized survival probability",
            xaxis = "Time",
            limit_end = max(results$time),
-           breaks = 1){
+           breaks = 1,
+           ...){
   
   results <- data_results %>%
       filter(is.na(sample)) %>%
@@ -83,6 +87,8 @@ surv_curves <- function(data_results,
       left_join(boot_samples) %>%
       mutate(time = time + 1) %>%
       bind_rows(results0)
+    
+    min_cif <- round(min(results$risk),1) + 0.2
     
     results %>%
       ggplot() +
