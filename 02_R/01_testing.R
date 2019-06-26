@@ -40,7 +40,7 @@ y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 
-# number_rows <- 60
+number_rows <- 60
 # data %>% filter(cens == 1) %>% 
 #   ggplot(aes(max)) + geom_histogram()
 # data %>% filter(competing == 1) %>% 
@@ -72,7 +72,7 @@ source("01_functions/36_direct_ipw_prost.R")
 source("01_functions/36_bootsamples.R")
 source("01_functions/36_wrapper.R")
 
-results_wrapper <- direct_ipw_pr_helper(
+results_ipw <- direct_ipw_pr_helper(
   data,
   surv_model = direct_ipw_pr,
   factors_outcome = y_model,
@@ -82,16 +82,16 @@ results_wrapper <- direct_ipw_pr_helper(
   seed = 123,
   n = 100)
 
-effect_measures_ipw_cr <- risk_diff_ratio(results_wrapper)
+effect_measures_ipw_cr <- risk_diff_ratio(results_ipw)
 
-cif_curves(results_wrapper, control = "placebo",
+cif_curves(results_ipw, control = "placebo",
             intervention = "High-dose DES",
             title = "Direct effect of DES in Prostate cancer death with IPW",
             xaxis = "months",
             limit_end = 60,
             breaks = 10)
 
-surv_curves(results_wrapper, breaks = 10, limit_end = 60)
+surv_curves(results_ipw, breaks = 10, limit_end = 60)
 
 effect_measures_ipw_cr %>% filter(time == 60)
 
@@ -104,12 +104,12 @@ source("01_functions/35_wrapper.R")
 y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 number_rows <- 60
 
-output <- direct_gf_pr_helper(data, factors_outcome = y_model,
+output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
                               n = 100,
                               seed = 123, 
                               surv_model = direct_gf_pr)
 
-effect_measures <- risk_diff_ratio(output)
+effect_measures_dir_gf <- risk_diff_ratio(output_dir_gf)
 
 cif_curves(output, control = "placebo",
             intervention = "High-dose DES",
@@ -119,7 +119,7 @@ cif_curves(output, control = "placebo",
             breaks = 10)
 
 surv_curves(output, breaks = 10)
-effect_measures %>% filter(time ==60)
+effect_measures_dir_gf %>% filter(time ==60)
 
 # Direct effects with IPW: Cause-specific hazard approach -----------------
 source("01_functions/39_total_ipwcs_prost.R")
@@ -135,7 +135,7 @@ results_ipwcs <- total_ipwcs_helper(data, factors_outcome = y_model,
                                n = 100, seed = 123)
 
 
-effect_measures <- risk_diff_ratio(results_ipwcs)
+effect_measures_ipwcs <- risk_diff_ratio(results_ipwcs)
 
 cif_curves(results_ipwcs, control = "placebo",
            intervention = "High-dose DES",
@@ -146,7 +146,7 @@ cif_curves(results_ipwcs, control = "placebo",
            max_cif = 0.5)
 
 surv_curves(results_ipwcs, breaks = 10)
-effect_measures %>% filter(time ==60)
+effect_measures_ipwcs %>% filter(time ==60)
 
 
 # Total effects with IPW sub-hazard approach ------------------------------------------------
@@ -164,7 +164,7 @@ results_ipwsh <- total_ipwsh_helper(data, factors_outcome = y_model,
                                    n = 100, seed = 123)
 
 
-effect_measures <- risk_diff_ratio(results_ipwsh)
+effect_measures_ipwsh <- risk_diff_ratio(results_ipwsh)
 
 cif_curves(results_ipwsh, control = "placebo",
            intervention = "High-dose DES",
@@ -175,5 +175,5 @@ cif_curves(results_ipwsh, control = "placebo",
            max_cif = 0.5)
 
 surv_curves(output_total, breaks = 10)
-effect_measures %>% filter(time ==60)
+effect_measures_ipwsh %>% filter(time ==60)
 
