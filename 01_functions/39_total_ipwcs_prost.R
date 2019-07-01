@@ -21,23 +21,16 @@ total_ipwcs_pr <- function(data,
     arrange(id, time)
   
   # Create weights ----------------------------------------------------------
-  num_cens <-
-    glm(no_cens ~ 1,
-        data = subset(data_long, time > 50),
-        family = binomial())
-  model_denom_cens <-
-    reformulate(termlabels = factors_cens, response = "no_cens")
-  denom_cens <-
-    glm(model_denom_cens,
-        data = subset(data_long, time > 50),
+  num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
+  model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
+  denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50),
         family = binomial())
   
   data_long %<>%
     mutate(
       cens_num = predict(num_cens, data_long, type = "response"),
-      cens_num = ifelse(time <= 50, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time <= 50, 1, cens_denom)
+      cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
     group_by(id) %>%
     mutate(
@@ -49,16 +42,12 @@ total_ipwcs_pr <- function(data,
       sw = cens_num_cum / cens_denom_cum,
     )
   
-  data_long <- data_long %>%
-    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
+  # data_long <- data_long %>%
+  #   mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
   
   # fit of weighted hazards model
-  model <-
-    reformulate(termlabels = factors_outcome, response = "outcome_plr")
-  adj_plr <- glm(model,
-                 data = data_long,
-                 family = quasibinomial(),
-                 weights = sw)
+  model <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
+  adj_plr <- glm(model, data = data_long, family = quasibinomial(), weights = sw)
 
   #create clones
   data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
