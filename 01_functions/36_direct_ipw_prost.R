@@ -25,28 +25,19 @@ direct_ipw_pr <- function(data,
   
   # Create weights ----------------------------------------------------------
   num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial())
-  model_denom_cr <-
-    reformulate(termlabels = factors_cr, response = "no_cr")
-  denom_cr <-
-    glm(model_denom_cr, data = data_long, family = binomial())
+  model_denom_cr <- reformulate(termlabels = factors_cr, response = "no_cr")
+  denom_cr <- glm(model_denom_cr, data = data_long, family = binomial())
   
-  num_cens <-
-    glm(no_cens ~ 1,
-        data = subset(data_long, time >= 50),
-        family = binomial())
-  model_denom_cens <-
-    reformulate(termlabels = factors_cens, response = "no_cens")
-  denom_cens <-
-    glm(model_denom_cens,
-        data = subset(data_long, time >= 50),
-        family = binomial())
+  num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
+  model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
+  denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50), 
+                    family = binomial())
   
   data_long %<>%
     mutate(
       cr_num = predict(num_cr, data_long, type = "response"),
       cr_denom = predict(denom_cr, data_long, type = "response"),
       cens_num = predict(num_cens, data_long, type = "response"),
-      cens_num = ifelse(time < 50, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
       cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
@@ -64,11 +55,11 @@ direct_ipw_pr <- function(data,
       sw = cr_sw * cens_sw
     )
   
-  data_long <- data_long %>%
-    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
+  # data_long <- data_long %>%
+  #   mutate(sw = ifelse((sw > quantile(sw, 0.99)), quantile(sw, 0.99), sw))
 
   # fit of weighted hazards model
-  model <-
+  model <- 
     reformulate(termlabels = factors_outcome, response = "outcome_plr")
   adj_plr <- glm(model,
                  data = data_long,
