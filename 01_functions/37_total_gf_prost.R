@@ -25,7 +25,7 @@ total_gf_pr <- function(data,
   model_y <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
   adj_plr_y <- glm(model_y, data = data_long, family = binomial)
   
-  model_cr <- reformulate(termlabels = factors_outcome, response = "no_cr")
+  model_cr <- reformulate(termlabels = factors_cr, response = "competing_plr")
   adj_plr_cr <- glm(model_cr, data = data_long, family = binomial)
   
   #create clones
@@ -40,7 +40,7 @@ total_gf_pr <- function(data,
   
   data0 %<>% 
     mutate(py = 1 - predict(adj_plr_y, newdata = data0, type = "response"),
-           pd = predict(adj_plr_cr, newdata = data0, type = "response")) %>% 
+           pd = 1 - predict(adj_plr_cr, newdata = data0, type = "response")) %>% 
     arrange(id, time) %>% 
     group_by(id) %>% 
     mutate(pd_j1 = lag(pd),
@@ -59,7 +59,7 @@ total_gf_pr <- function(data,
   
   data1 %<>% 
     mutate(py = 1 - predict(adj_plr_y, newdata = data1, type = "response"),
-           pd = predict(adj_plr_cr, newdata = data1, type = "response")) %>% 
+           pd = 1 - predict(adj_plr_cr, newdata = data1, type = "response")) %>% 
     arrange(id, time) %>% 
     group_by(id) %>% 
     mutate(pd_j1 = lag(pd),
