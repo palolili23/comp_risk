@@ -72,6 +72,12 @@ source("01_functions/36_direct_ipw_prost.R")
 source("01_functions/36_bootsamples.R")
 source("01_functions/36_wrapper.R")
 
+##Eventually needs a a_model for the weights on the exposure
+
+y_model <- c("exposure*(time + I(time^3))") 
+d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
+c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+
 results_ipw <- direct_ipw_pr_helper(
   data,
   surv_model = direct_ipw_pr,
@@ -135,12 +141,15 @@ source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
-y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+y_model <- c("exposure*(time + I(time^3))") 
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+d_model <- c("exposure", "time", "I(time^2)")
+
 number_rows <- 60
 
 results_ipwcs <- total_ipwcs_helper(data, factors_outcome = y_model,
                                factors_cens = c_model,
+                               factors_cr = d_model,
                                rows = number_rows,
                                n = 100, seed = 123)
 
@@ -164,7 +173,7 @@ source("01_functions/38_total_ipwsh_prost.R")
 source("01_functions/38_bootsamples.R")
 source("01_functions/38_wrapper.R")
 
-y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+y_model <- c("exposure*(time + I(time^3))")
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 number_rows <- 60
 
