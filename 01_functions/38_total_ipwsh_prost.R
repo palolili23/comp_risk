@@ -27,8 +27,7 @@ total_ipwsh_pr <- function(data,
   
   # Create weights ----------------------------------------------------------
   num_cens <-
-    glm(no_cens ~ 1,
-        data = subset(data_long, time >= 50  & no_cr == 1),
+    glm(no_cens ~ 1, data = subset(data_long, no_cr == 1),
         family = binomial())
   model_denom_cens <-
     reformulate(termlabels = factors_cens, response = "no_cens")
@@ -40,9 +39,8 @@ total_ipwsh_pr <- function(data,
   data_long %<>%
     mutate(
       cens_num = predict(num_cens, data_long, type = "response"),
-      cens_num = ifelse(time <= 50, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time <= 50, 1, cens_denom)
+      cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
     group_by(id) %>%
     mutate(
@@ -55,12 +53,11 @@ total_ipwsh_pr <- function(data,
       sw = ifelse(competing_plr == 1, 1, sw)
     )
   
-  data_long <- data_long %>%
-    mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
+  # data_long <- data_long %>%
+  #   mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
   
   # fit of weighted hazards model
-  model <-
-    reformulate(termlabels = factors_outcome, response = "outcome_plr")
+  model <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
   
   adj_plr <- glm(model,
                  data = data_long,
