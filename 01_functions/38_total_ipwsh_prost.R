@@ -27,21 +27,22 @@ total_ipwsh_pr <- function(data,
   
   # Create weights ----------------------------------------------------------
   num_cens <-
-    glm(no_cens ~ 1, data = subset(data_long, no_cr == 1),
+    glm(no_cens ~ 1, data = subset(data_long, time != 0 & no_cr == 1),
         family = binomial())
   model_denom_cens <-
     reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <-
     glm(model_denom_cens,
-        data = subset(data_long, time >= 50 & no_cr == 1),
+        data = subset(data_long, time != 0 & time >= 50 & no_cr == 1),
         family = binomial())
   
   data_long %<>%
     mutate(
       cens_num = predict(num_cens, data_long, type = "response"),
+      cens_num = ifelse(time == 0, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom)
-    ) %>%
+      cens_denom = ifelse(time == 0, 1, cens_denom),
+      cens_denom = ifelse(time < 50, 1, cens_denom)) %>%
     group_by(id) %>%
     mutate(
       cens_num_cum = cumprod(cens_num),
