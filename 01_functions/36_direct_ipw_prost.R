@@ -24,20 +24,20 @@ direct_ipw_pr <- function(data,
     arrange(id, time)
   
   # Create weights ----------------------------------------------------------
-  num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial())
+  # num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial())
   model_denom_cr <- reformulate(termlabels = factors_cr, response = "no_cr")
-  denom_cr <- glm(model_denom_cr, data = data_long, family = binomial())
+  denom_cr <- glm(model_denom_cr, data = data_long, family = quasibinomial())
   
-  num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
+  # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
   model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50), 
-                    family = binomial())
+                    family = quasibinomial())
   
   data_long %<>%
     mutate(
-      cr_num = predict(num_cr, data_long, type = "response"),
+      cr_num = 1,
       cr_denom = predict(denom_cr, data_long, type = "response"),
-      cens_num = predict(num_cens, data_long, type = "response"),
+      cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
       cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
