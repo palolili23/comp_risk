@@ -26,19 +26,16 @@ total_ipwsh_pr <- function(data,
     arrange(id, time)
   
   # Create weights ----------------------------------------------------------
-  num_cens <-
-    glm(no_cens ~ 1, data = subset(data_long, time != 0 & no_cr == 1),
-        family = binomial())
   model_denom_cens <-
     reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <-
     glm(model_denom_cens,
         data = subset(data_long, time != 0 & time >= 50 & no_cr == 1),
-        family = binomial())
+        family = quasibinomial())
   
   data_long %<>%
     mutate(
-      cens_num = predict(num_cens, data_long, type = "response"),
+      cens_num = 1,
       cens_num = ifelse(time == 0, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
       cens_denom = ifelse(time == 0, 1, cens_denom),
