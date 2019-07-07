@@ -1,4 +1,51 @@
-# Project on competing risks estimates
+# Project on Competing Risks
 
-These project is code to understand different estimators of competing events to apply on dementia research. 
+This repository contains code to estimate the different estimates proposed in the following paper [by Young et al]("https://arxiv.org/abs/1806.06136").
+
+
+The example dataset is **Byar & Greene prostate cancer data**, downloaded from the following [website]("http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets").
+
+The estimates are presented as follows:
+
+**Direct Effects:**
+
+- Via G-formula (35)
+
+- Via IPW (36)
+
+
+**Total Effects:**
+
+- Via G-formula (37) (*In process*)
+
+- Via IPW Sub-distribution hazard (38)
+
+- Via IPW Cause-specific hazard (39) (*In process*)
+
+Currently, the folder `01_functions` contains the code for the following:
+
+- `n_estimate_function`: Is the function for the estimate
+
+- `n_bootsamples`: The boostrap function for the estimate
+
+- `n_wrapper`: A function that wraps the estimate and bootsamples results, creates a tibble with all the results for all timepoints.
+
+- `risk_diff_ratio`: Uses the output from `n_wrapper` to calculate the following estimates (with 95% Confidence intervals):   
+
+  -- $E(Y^{a=0})$
+
+  -- $E(Y^{a=1})$
+  
+  -- $E(Y^{a=1}) - E(Y^{a=0})$
+  
+  -- $\frac{E(Y^{a=1})}{E(Y^{a=0})}$
+  
+- `survival_graph`: Contains two different functions:
+
+    1. `cif_curves`: creates curves for the cumulative incidence
+  
+    2. `surv_curves`: creates the survival curves.
+
+
+
 
