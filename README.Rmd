@@ -7,12 +7,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Project on Competing Risks
 
-This repository contains code to estimate the different estimates proposed in the following paper [by Young et al](https://arxiv.org/abs/1806.06136).
+This repository contains code to estimate the different estimands proposed in the following paper [by Young et al](https://arxiv.org/abs/1806.06136).
 
 
 The example dataset is **Byar & Greene prostate cancer data**, downloaded from the following [website](http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets).
 
-The estimates are presented as follows:
+The estimands are presented as follows:
 
 **Direct Effects:**
 
@@ -29,9 +29,11 @@ The estimates are presented as follows:
 
 - Via IPW Cause-specific hazard (39) (*In process*)
 
+
+
 Currently, the folder `01_functions` contains the code for the following:
 
-- `n_estimate_function`: Is the function for the estimate
+- `n_estimate_function`: Is the function for the estimate (indicated by the prefix number)
 
 - `n_bootsamples`: The boostrap function for the estimate
 
@@ -39,13 +41,13 @@ Currently, the folder `01_functions` contains the code for the following:
 
 - `risk_diff_ratio`: Uses the output from `n_wrapper` to calculate the following estimates (with 95% Confidence intervals):   
 
-  -- $E(Y^{a=0})$
+  -- $Pr[Y_{k+1}^{a=0, c=0} = 1]$
 
-  -- $E(Y^{a=1})$
+  -- $Pr[Y_{k+1}^{a=1, c=0} = 1]$
   
-  -- $E(Y^{a=1}) - E(Y^{a=0})$
+  -- $Pr[Y_{k+1}^{a=1, c=0} = 1] - Pr[Y_{k+1}^{a=0, c=0} = 1]$
   
-  -- $\frac{E(Y^{a=1})}{E(Y^{a=0})}$
+  -- $\frac{Pr[Y_{k+1}^{a=1, c=0} = 1]}{Pr[Y_{k+1}^{a=0, c=0} = 1]}$
   
 - `survival_graph`: Contains two different functions:
 
