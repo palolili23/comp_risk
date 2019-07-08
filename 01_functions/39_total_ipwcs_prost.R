@@ -1,5 +1,6 @@
 total_ipwcs_pr <- function(data,
                           factors_outcome,
+                          factors_cr,
                           factors_cens,
                           rows = max(data$max)) {
   
@@ -13,6 +14,8 @@ total_ipwcs_pr <- function(data,
     mutate(
       time = row_number() - 1,
       outcome_plr = ifelse(time == max, outcome, 0),
+      competing_plr = ifelse(time == max, competing, 0),
+      no_cr = 1 - competing_plr,
       cens_plr = ifelse(time == max, cens, 0),
       no_cens = 1 - cens_plr,
     ) %>%
@@ -21,14 +24,13 @@ total_ipwcs_pr <- function(data,
     arrange(id, time)
   
   # Create weights ----------------------------------------------------------
-  num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
   model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50),
         family = binomial())
   
   data_long %<>%
     mutate(
-      cens_num = predict(num_cens, data_long, type = "response"),
+      cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
       cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
@@ -46,8 +48,11 @@ total_ipwcs_pr <- function(data,
   #   mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
   
   # fit of weighted hazards model
-  model <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
-  adj_plr <- glm(model, data = data_long, family = quasibinomial(), weights = sw)
+  model_y <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
+  adj_plr_y <- glm(model_y, data = data_long, family = quasibinomial(), weights = sw)
+  
+  model_cr <- reformulate(termlabels = factors_cr, response = "competing_plr")
+  adj_plr_cr <- glm(model_cr, data = data_long, family = quasibinomial(), weights = sw)
 
   #create clones
   data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
@@ -60,11 +65,14 @@ total_ipwcs_pr <- function(data,
     ungroup()
   
   data0 <- data0 %>%
-    mutate(p = 1 - predict(adj_plr, newdata = data0, type = "response")) %>%
+    mutate(p_y = 1 - predict(adj_plr_y, newdata = data0, type = "response"),
+           p_cr = 1 - predict(adj_plr_cr, newdata = data0, type = "response")) %>%
     arrange(id, time) %>%
     group_by(id) %>%
-    mutate(s = cumprod(p),
-           cif = 1 - s) %>%
+    mutate(s_y = cumprod(p_y),
+           s_cr = cumprod(p_cr),
+           total = s_y*s_cr,
+           cif_y = 1 - s_y) %>% 
     ungroup()
   
   #predict probabilities when exposure = 1
@@ -75,20 +83,25 @@ total_ipwcs_pr <- function(data,
     ungroup()
   
   data1 %<>%
-    mutate(p = 1 - predict(adj_plr, newdata = data1, type = "response")) %>%
+    mutate(p_y = 1 - predict(adj_plr_y, newdata = data1, type = "response"),
+           p_cr = 1 - predict(adj_plr_cr, newdata = data1, type = "response")) %>%
     arrange(id, time) %>%
     group_by(id) %>%
-    mutate(s = cumprod(p),
-           cif = 1 - s) %>%
+    mutate(s_y = cumprod(p_y),
+           s_cr = cumprod(p_cr),
+           total = s_y*s_cr,
+           cif_y = 1 - s_y) %>% 
     ungroup()
   
   #combine sets and estimate the mean_survival
   results <- data0 %>%
     bind_rows(data1) %>%
-    select(time, exposure, s, cif) %>%
+    select(time, exposure, s_y, s_cr, total, cif_y) %>%
     group_by(time, exposure) %>%
-    summarize(mean_survival = mean(s),
-              mean_cif = mean(cif)) %>%
+    summarize(mean_survival_y = mean(s_y),
+              mean_s_cr = mean(s_cr),
+              mean_total = mean(total),
+              mean_cif_y = 1 - mean_total) %>%
     ungroup()
   
   return(results)

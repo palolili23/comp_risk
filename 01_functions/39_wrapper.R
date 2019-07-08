@@ -5,15 +5,17 @@
 
 total_ipwcs_helper <- function(data, factors_outcome,
                                factors_cens,
+                               factors_cr,
                                 rows = max(data$max),
                                 n, 
                                 seed = 123){
   
-  results <- total_ipwcs_pr(data, factors_outcome, factors_cens, rows)
+  results <- total_ipwcs_pr(data, factors_outcome, factors_cr, factors_cens, rows)
   
   bootresults <- bootsamples39(data, n, seed,
                                factors_outcome,
                                factors_cens,
+                               factors_cr,
                                rows)
   
   binded <- results %>% bind_rows(bootresults)

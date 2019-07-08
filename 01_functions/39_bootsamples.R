@@ -1,6 +1,7 @@
 bootsamples39 <- function(data, n, 
                           seed = 123,
                           factors_outcome,
+                          factors_cr,
                           factors_cens,
                           rows = max(data$max)){
   # Set seed
@@ -13,6 +14,7 @@ bootsamples39 <- function(data, n,
       mutate(id = row_number()) 
     return(total_ipwcs_pr(ds_b, 
                         factors_outcome,
+                        factors_cr,
                         factors_cens,
                         rows))
   }, simplify = F)
