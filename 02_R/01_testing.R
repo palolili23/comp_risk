@@ -147,13 +147,22 @@ d_model <- c("exposure", "time", "I(time^2)")
 
 number_rows <- 60
 
+
+results_ipwcs <- total_ipwcs_pr(data, factors_outcome = y_model,
+                                    factors_cens = c_model,
+                                    factors_cr = d_model,
+                                    rows = number_rows)
+
+
 results_ipwcs <- total_ipwcs_helper(data, factors_outcome = y_model,
                                factors_cens = c_model,
+                               factors_cr = d_model,
                                rows = number_rows,
                                n = 100, seed = 123)
 
 
 effect_measures_ipwcs <- risk_diff_ratio(results_ipwcs)
+
 
 cif_curves(results_ipwcs, control = "placebo",
            intervention = "High-dose DES",
@@ -197,7 +206,6 @@ cif_curves(results_ipwsh, control = "placebo",
 effect_measures_ipwsh %>% filter(time ==60)
 
 
-
 # Total effects with G-formula ------------------------------------------------
 source("01_functions/37_total_gf_prost.R")
 source("01_functions/37_bootsamples.R")
@@ -233,3 +241,4 @@ effect_measures_ipw_cr %>% filter(time == 60) %>%
             (effect_measures_ipwsh %>% filter(time ==60) %>%  mutate(estimate = "Total IPWsh")),
             (effect_measures_ipwcs %>% filter(time ==60) %>%  mutate(estimate = "Total IPWcs")), 
             (effect_measures_gf %>% filter(time ==60)) %>%  mutate(estimate = "Total G-f"))
+ 
