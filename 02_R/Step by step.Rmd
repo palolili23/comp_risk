@@ -67,7 +67,7 @@ Now that we have the data set, we will proceed by estimating the different estim
 
 ### Direct effect IPW
 
-Call functions:
+1. Call functions:
 
 ```{r}
 source("../01_functions/36_direct_ipw_prost.R")
@@ -75,7 +75,9 @@ source("../01_functions/36_bootsamples.R")
 source("../01_functions/36_wrapper.R")
 ```
 
-Define the variables for the required models, for this we need to create a vector with the parameters we are interested in each model. 
+2. Define the arguments for the estimand function: 
+
+We need to create a vector with the parameters we are interested in each model. 
 
 * Censoring model: `c_model`
 
@@ -85,6 +87,7 @@ Define the variables for the required models, for this we need to create a vecto
 
 * *Exposure model: Since the example uses data from an RCT they do not create weights for the exposure, I will need to create them when I implement the models in observational data.*
 
+We will also create an object with the max time of follow up.
 ```{r}
 y_model <- c("exposure*(time + I(time^3))") 
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
@@ -92,8 +95,10 @@ c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 number_rows <- 60
 ```
 
-Use the function `direct_ipw_pr_helper`, which requeries the following arguments:
+3. Use the function `direct_ipw_pr_helper`, which requeries the following arguments:
 data, surv_model (estimand function), factors_outcome (parameters for the outcome), factors_cens (parameters for the censoring), factors_cr (parameters for the competing event), rows (the administrative censoring time, by default uses the max time of follow up but can be changed to an earlier time of censoring), seed, n (number of bootstraps).
+
+To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/36_direct_ipw_prost.R)
 
 ```{r}
 results_ipw <- direct_ipw_pr_helper(
@@ -108,7 +113,7 @@ results_ipw <- direct_ipw_pr_helper(
 )
 ```
 
-We use the output obtained to estimate the following estimands, for all timepoints:
+4. We use the output obtained to estimate the following estimands, for all timepoints:
 
 * $Pr[Y_{k+1}^{a=0, c=0, d=0} = 1]$
 
@@ -147,7 +152,7 @@ effect_measures_ipw_cr %>%
 ```
 
 
-Finally we plot the cumulative incidence over time and the survival probability over time.
+5. Plot the cumulative incidence over time and the survival probability over time.
 
 ```{r, warning=FALSE, message= FALSE}
 cif_curves(
@@ -179,7 +184,7 @@ surv_curves(
 
 ### Direct effect via G-formula
 
-Call functions:
+1. Call functions:
 
 ```{r}
 source("../01_functions/35_direct_gf_prost.R")
@@ -187,7 +192,7 @@ source("../01_functions/35_bootsamples.R")
 source("../01_functions/35_wrapper.R")
 ```
 
-Define the variables for the outcome model and define the max. timepoint.
+2. Define the arguments for the estimand function: A vector with the variables for the outcome model and define the max. timepoints.
 
 * Event model: `y_model`
 
@@ -196,7 +201,9 @@ y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 number_rows <- 60
 ```
 
-Use the `direct_gf_pr_helper` to get the estimates from the observed dataset and the bootstrap sample.
+3. Use the `direct_gf_pr_helper` to get the estimates from the observed dataset and the bootstrap sample.
+
+To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/35_direct_gf_prost.R)
 
 ```{r}
 output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
@@ -206,7 +213,7 @@ output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
                               surv_model = direct_gf_pr)
 ```
 
-To get the results with confidence intervals, we will only present at time 60.
+4. To get the results with confidence intervals, we will only present at time 60.
 
 ```{r, message= FALSE, warning = FALSE}
 effect_measures_dir_gf <- risk_diff_ratio(output_dir_gf)
@@ -222,7 +229,7 @@ effect_measures_dir_gf %>%
 
 ```
 
-Cumulative incidence graph:
+5. Cumulative incidence graph:
 
 ```{r}
 cif_curves(
@@ -243,7 +250,7 @@ We will omit the survival curves graph, but can be coded as in the previous exam
 
 ### Total effec IPWsh 
 
-Call functions:
+1. Call functions:
 
 ```{r}
 source("../01_functions/38_total_ipwsh_prost.R")
@@ -251,7 +258,7 @@ source("../01_functions/38_bootsamples.R")
 source("../01_functions/38_wrapper.R")
 ```
 
-Define required models:
+2. Define required models:
 
 ```{r}
 y_model <- c("exposure*(time + I(time^3))")
@@ -259,7 +266,20 @@ c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 number_rows <- 60
 ```
 
-Observe the estimands for the total effects are different that for the direct effect.
+3. Use the `total_ipwsh_helper` to get the estimates from the observed dataset and the bootstrap sample.
+
+To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/39_total_ipwcs_prost.R)
+
+```{r, message= FALSE, warning = FALSE}
+results_ipwsh <- total_ipwsh_helper(data, factors_outcome = y_model,
+                                   factors_cens = c_model,
+                                   rows = number_rows,
+                                   n = 100, seed = 123)
+```
+
+4. Estimate the point estimates and confidence intervals.
+
+Observe that the estimands for the total effects are different that for the direct effect.
 
 * $Pr[Y_{k+1}^{a=0, c=0} = 1]$
 
@@ -269,18 +289,6 @@ Observe the estimands for the total effects are different that for the direct ef
 
 * $\frac{Pr[Y_{k+1}^{a=1, c=0} = 1]}{Pr[Y_{k+1}^{a=0, c=0} = 1]}$
 
-
-We use the output obtained to estimate the following estimands, for all timepoints:
-
-```{r, message= FALSE, warning = FALSE}
-results_ipwsh <- total_ipwsh_helper(data, factors_outcome = y_model,
-                                   factors_cens = c_model,
-                                   rows = number_rows,
-                                   n = 100, seed = 123)
-```
-
-
-To get the results with confidence intervals, we will only present at time 60.
 
 ```{r, message= FALSE, warning = FALSE}
 effect_measures_ipwsh <- risk_diff_ratio(results_ipwsh)
@@ -296,7 +304,7 @@ effect_measures_ipwsh %>%
 
 ```
 
-Cumulative incidence curves:
+5. Cumulative incidence curves:
 
 ```{r, message= FALSE, warning = FALSE}
 cif_curves(results_ipwsh, control = "placebo",

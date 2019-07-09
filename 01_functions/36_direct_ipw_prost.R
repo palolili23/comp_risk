@@ -3,7 +3,6 @@ direct_ipw_pr <- function(data,
                           factors_cens,
                           factors_cr,
                           rows = max(data$max)) {
-  
   #transform from wide to long and create necessary variables
   
   # To go from wide to long when only outcome changes over time, we will create as many rows as timepoints.
@@ -35,14 +34,23 @@ direct_ipw_pr <- function(data,
   
   # fits a model for not having the competing event using the vector of parameters defined in the argument "factors_cr".
   # num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial()) for stabilized weights
-  model_denom_cr <- reformulate(termlabels = factors_cr, response = "no_cr")
-  denom_cr <- glm(model_denom_cr, data = data_long, family = quasibinomial())
+  
+  model_denom_cr <-
+    reformulate(termlabels = factors_cr, response = "no_cr")
+  
+  denom_cr <-
+    glm(model_denom_cr, data = data_long, family = quasibinomial())
   
   # fits a model for not being censored using the vector of parameters defined in the argument "factors_cens".
   # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial()) for stabilized weights
-  model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
-  denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50), 
-                    family = quasibinomial())
+  
+  model_denom_cens <-
+    reformulate(termlabels = factors_cens, response = "no_cens")
+  
+  denom_cens <-
+    glm(model_denom_cens,
+        data = subset(data_long, time >= 50),
+        family = quasibinomial())
   
   # We use the previous models to calculate the weights for C and D.
   
@@ -71,13 +79,14 @@ direct_ipw_pr <- function(data,
   # For weight truncation:
   # data_long <- data_long %>%
   #   mutate(sw = ifelse((sw > quantile(sw, 0.99)), quantile(sw, 0.99), sw))
-
+  
   # fits a model for the outcome using the vector of parameters defined in the argument "factors_outcome"
   # This model should only include a paramater for the exposure, a flexible function of time and interaction between exposure and time
   # Uses the calculated weights.
   
-  model <- 
+  model <-
     reformulate(termlabels = factors_outcome, response = "outcome_plr")
+  
   adj_plr <- glm(model,
                  data = data_long,
                  family = quasibinomial(),
