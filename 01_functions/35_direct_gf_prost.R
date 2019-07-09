@@ -64,7 +64,7 @@ direct_gf_pr <- function(data, factors_outcome,
            time = (row_number() - 1)) %>%
     ungroup()
   
-  #predict the probability of outcome at each time when exposure = 0 for all individuals.
+  # predict the probability of outcome at each time when exposure = 1 for all individuals.
   
   data1 %<>%
     mutate(p = 1 - predict(adj_plr, newdata = data1, type = "response")) %>%

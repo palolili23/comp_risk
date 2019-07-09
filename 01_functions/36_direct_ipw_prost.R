@@ -5,9 +5,17 @@ direct_ipw_pr <- function(data,
                           rows = max(data$max)) {
   
   #transform from wide to long and create necessary variables
+  
+  # To go from wide to long when only outcome changes over time, we will create as many rows as timepoints.
+  
   n_expanding_rows <- rows + 1
   
-  data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
+  data_long <- data[rep(seq(nrow(data)), n_expanding_rows), ]
+  
+  # Groups by ID, creates a "time" variable.
+  # Outcome_plr, competing_plr and cens_plr are 0 until the last row, when they developed one of the events.
+  # No_cr and no_cens are indicators for not having the competing event and not censored at each timepoint.
+  # filter time<= max eliminates the extra rows in case their last timepoint is smaller than the time for complete follow up.
   
   data_long %<>%
     group_by(id) %>%
@@ -24,14 +32,19 @@ direct_ipw_pr <- function(data,
     arrange(id, time)
   
   # Create weights ----------------------------------------------------------
-  # num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial())
+  
+  # fits a model for not having the competing event using the vector of parameters defined in the argument "factors_cr".
+  # num_cr <- glm(no_cr ~ 1, data = data_long, family = binomial()) for stabilized weights
   model_denom_cr <- reformulate(termlabels = factors_cr, response = "no_cr")
   denom_cr <- glm(model_denom_cr, data = data_long, family = quasibinomial())
   
-  # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial())
+  # fits a model for not being censored using the vector of parameters defined in the argument "factors_cens".
+  # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial()) for stabilized weights
   model_denom_cens <- reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <- glm(model_denom_cens, data = subset(data_long, time >= 50), 
                     family = quasibinomial())
+  
+  # We use the previous models to calculate the weights for C and D.
   
   data_long %<>%
     mutate(
@@ -39,7 +52,7 @@ direct_ipw_pr <- function(data,
       cr_denom = predict(denom_cr, data_long, type = "response"),
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom)
+      cens_denom = ifelse(time < 50, 1, cens_denom) #This is specific of this study because no one was censored before time 50
     ) %>%
     group_by(id) %>%
     mutate(
@@ -55,25 +68,37 @@ direct_ipw_pr <- function(data,
       sw = cr_sw * cens_sw
     )
   
+  # For weight truncation:
   # data_long <- data_long %>%
   #   mutate(sw = ifelse((sw > quantile(sw, 0.99)), quantile(sw, 0.99), sw))
 
-  # fit of weighted hazards model
+  # fits a model for the outcome using the vector of parameters defined in the argument "factors_outcome"
+  # This model should only include a paramater for the exposure, a flexible function of time and interaction between exposure and time
+  # Uses the calculated weights.
+  
   model <- 
     reformulate(termlabels = factors_outcome, response = "outcome_plr")
   adj_plr <- glm(model,
                  data = data_long,
                  family = quasibinomial(),
                  weights = sw)
-  #create clones
+  
+  # creates two cloned datasets with all timepoints for all individuals
+  
   data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
-  #predict probabilities when exposure = 0
+  # In one dataset we fix the exposure to 0 for all individuals.
+  
   data0 %<>%
     group_by(id) %>%
     mutate(exposure = 0,
            time = (row_number() - 1)) %>%
     ungroup()
+  
+  # predict the survival probability of the outcome at each time when exposure = 0 for all individuals.
+  # uses the model calculated on the observed data
+  # Calculates the cumulative product of the probability of surviving at each time point, for each individual.
+  # cif is the cumulative incidence of the outcome
   
   data0 <- data0 %>%
     mutate(p = 1 - predict(adj_plr, newdata = data0, type = "response")) %>%
@@ -83,7 +108,8 @@ direct_ipw_pr <- function(data,
            cif = 1 - s) %>%
     ungroup()
   
-  #predict probabilities when exposure = 1
+  # In this dataset we fix the exposure to 1 for all individuals
+  
   data1 %<>%
     group_by(id) %>%
     mutate(exposure = 1,
@@ -98,7 +124,8 @@ direct_ipw_pr <- function(data,
            cif = 1 - s) %>%
     ungroup()
   
-  #combine sets and estimate the mean_survival
+  #combine sets and estimate the average survival probability and average cumulative incidence at each time
+  
   results <- data0 %>%
     bind_rows(data1) %>%
     select(time, exposure, s, cif) %>%
