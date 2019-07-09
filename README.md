@@ -9,6 +9,11 @@ The example dataset is **Byar & Greene prostate cancer data**,
 downloaded from the following
 [website](http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets).
 
+The idea is to come up with clean*(ish)* code that can be adapted to
+other datasets. The example includes a time-fixed exposure
+(randomization to 1 of 2 treatments) and covariates only measured at
+baseline.
+
 The estimands are presented as follows:
 
 **Direct Effects:**
@@ -52,3 +57,5 @@ following:
 
 An example of how to use the code is available on the following link:
 <https://palolili23.github.io/comp_risk/02_R/Step_by_step.html>
+
+*Next steps: Use an observational dataset and adapt the functions.*
