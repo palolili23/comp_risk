@@ -30,14 +30,13 @@ total_ipwsh_pr <- function(data,
     reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <-
     glm(model_denom_cens,
-        data = subset(data_long, time != 0 & time >= 50 & no_cr == 1),
+        data = subset(data_long, time >= 50 & no_cr == 1),
         family = quasibinomial())
   
   data_long %<>%
     mutate(
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time == 0, 1, cens_denom),
       cens_denom = ifelse(time < 50, 1, cens_denom)) %>%
     group_by(id) %>%
     mutate(
