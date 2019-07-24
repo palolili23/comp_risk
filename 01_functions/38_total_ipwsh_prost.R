@@ -29,25 +29,24 @@ total_ipwsh_pr <- function(data,
   model_denom_cens <-
     reformulate(termlabels = factors_cens, response = "no_cens")
   denom_cens <-
-    glm(model_denom_cens,
-        data = subset(data_long, time >= 50 & no_cr == 1),
-        family = quasibinomial())
+    glm(
+      model_denom_cens,
+      data = subset(data_long, time >= 50 & no_cr == 1),
+      family = quasibinomial()
+    )
   
   data_long %<>%
     mutate(
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom)) %>%
-    group_by(id) %>%
-    mutate(
-      cens_num_cum = 1,
-      cens_denom_cum = cumprod(cens_denom)
+      cens_denom = ifelse(time < 50, 1, cens_denom)
     ) %>%
+    group_by(id) %>%
+    mutate(cens_num_cum = 1,
+           cens_denom_cum = cumprod(cens_denom)) %>%
     ungroup() %>%
-    mutate(
-      sw = cens_num_cum / cens_denom_cum,
-      sw = ifelse(competing_plr == 1, 1, sw)
-    )
+    mutate(sw = cens_num_cum / cens_denom_cum,
+           sw = ifelse(competing_plr == 1, 1, sw))
   
   # data_long <- data_long %>%
   #   mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
