@@ -36,13 +36,12 @@ total_ipwsh_pr <- function(data,
   data_long %<>%
     mutate(
       cens_num = 1,
-      cens_num = ifelse(time == 0, 1, cens_num),
       cens_denom = predict(denom_cens, data_long, type = "response"),
       cens_denom = ifelse(time == 0, 1, cens_denom),
       cens_denom = ifelse(time < 50, 1, cens_denom)) %>%
     group_by(id) %>%
     mutate(
-      cens_num_cum = cumprod(cens_num),
+      cens_num_cum = 1,
       cens_denom_cum = cumprod(cens_denom)
     ) %>%
     ungroup() %>%
