@@ -136,16 +136,16 @@ cif_curves(
 # surv_curves(output, breaks = 10)
 effect_measures_dir_gf %>% filter(time ==60)
 
-# Direct effects with IPW: Cause-specific hazard approach -----------------
+# Total effects with IPW: Cause-specific hazard approach -----------------
 source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
-y_model <- c("exposure*(time + I(time^3))") 
-c_model <- c("exposure", "pf_f", "age_f", "hg_f")
-d_model <- c("exposure", "time", "I(time^2)")
+factors_outcome <- c("exposure*(time + I(time^3))") 
+factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
+factors_cr <- c("exposure", "time", "I(time^2)")
 
-number_rows <- 60
+rows <- 60
 
 
 results_ipwcs <- total_ipwcs_pr(data, factors_outcome = y_model,
@@ -211,8 +211,8 @@ source("01_functions/37_total_gf_prost.R")
 source("01_functions/37_bootsamples.R")
 source("01_functions/37_wrapper.R")
 
-y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
-d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
+factors_outcome <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+factors_cr <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 
 rows <- 60
 
