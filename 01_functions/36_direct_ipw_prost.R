@@ -49,7 +49,7 @@ direct_ipw_pr <- function(data,
   
   denom_cens <-
     glm(model_denom_cens,
-        data = subset(data_long, time >= 50),
+        data = subset(data_long, time >= 50 & no_cr == 1),
         family = quasibinomial())
   
   # We use the previous models to calculate the weights for C and D.
@@ -60,7 +60,7 @@ direct_ipw_pr <- function(data,
       cr_denom = predict(denom_cr, data_long, type = "response"),
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom) #This is specific of this study because no one was censored before time 50
+      cens_denom = ifelse(time < 50, 1, cens_denom) #This is specific of this study because no one was censored before time 50) #because if you had the competing event you are not censored
     ) %>%
     group_by(id) %>%
     mutate(
@@ -73,6 +73,7 @@ direct_ipw_pr <- function(data,
     mutate(
       cr_sw = cr_num_cum / cr_denom_cum,
       cens_sw = cens_num_cum / cens_denom_cum,
+      cens_sw = ifelse(competing_plr == 1, 1, cens_sw),
       sw = cr_sw * cens_sw
     )
   
