@@ -76,7 +76,7 @@ source("01_functions/36_wrapper.R")
 
 y_model <- c("exposure*(time + I(time^3))") 
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
-c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+c_model <- c("exposure", "pf_f", "age_f", "hx")
 
 results_ipw <- direct_ipw_pr_helper(
   data,
@@ -142,7 +142,7 @@ source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
 factors_outcome <- c("exposure*(time + I(time^3))") 
-factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
+factors_cens <- c("exposure", "pf_f", "age_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)")
 
 rows <- 60
@@ -182,7 +182,7 @@ source("01_functions/38_bootsamples.R")
 source("01_functions/38_wrapper.R")
 
 y_model <- c("exposure*(time + I(time^3))")
-c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+c_model <- c("exposure", "pf_f", "age_f", "hx")
 number_rows <- 60
 
 
