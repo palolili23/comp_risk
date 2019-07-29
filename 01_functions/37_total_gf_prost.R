@@ -42,19 +42,21 @@ total_gf_pr <- function(data,
   
   data0 %<>%
     mutate(
-      py = 1 - predict(adj_plr_y, newdata = data0, type = "response"),
-      pd = 1 - predict(adj_plr_cr, newdata = data0, type = "response")
+      py = predict(adj_plr_y, newdata = data0, type = "response"),
+      pd = predict(adj_plr_cr, newdata = data0, type = "response")
     ) %>%
     arrange(id, time) %>%
     group_by(id) %>%
     mutate(
-      py_k1 = py * pd,
-      s = cumprod(py_k1),
-      cif = 1 - s
-    ) %>%
+      s = (1 - py) * (1 - pd),
+      cum_s = cumprod(s),
+      s_lag = lag(cum_s),
+      cif = pd * s_lag,
+      cif = ifelse(is.na(cif), pd, cif),
+      cif_cum = cumsum(cif)) %>%
     ungroup()
-
     #predict probabilities when exposure = 1
+  
   data1 %<>%
     group_by(id) %>%
     mutate(exposure = 1,
@@ -63,25 +65,27 @@ total_gf_pr <- function(data,
   
   data1 %<>%
     mutate(
-      py = 1 - predict(adj_plr_y, newdata = data1, type = "response"),
-      pd = 1 - predict(adj_plr_cr, newdata = data1, type = "response")
+      py = predict(adj_plr_y, newdata = data1, type = "response"),
+      pd = predict(adj_plr_cr, newdata = data1, type = "response")
     ) %>%
     arrange(id, time) %>%
     group_by(id) %>%
     mutate(
-      py_k1 = py * pd,
-      s = cumprod(py_k1),
-      cif = 1 - s
-    ) %>%
+      s = (1 - py) * (1 - pd),
+      cum_s = cumprod(s),
+      s_lag = lag(cum_s),
+      cif = pd * s_lag,
+      cif = ifelse(is.na(cif), pd, cif),
+      cif_cum = cumsum(cif)) %>%
     ungroup()
   
   #combine sets and estimate the mean_survival
   results <- data0 %>%
     bind_rows(data1) %>%
-    select(time, exposure, s, cif) %>%
-    group_by(time, exposure) %>%
-    summarize(mean_survival = mean(s),
-              mean_cif = mean(cif)) %>%
+    select(time, exposure, cum_s, cif_cum) %>%
+    group_by(exposure, time) %>%
+    summarize(mean_survival = mean(cum_s),
+              mean_cif = mean(cif_cum)) %>%
     ungroup()
   
   return(results)
