@@ -36,7 +36,7 @@ data <- data %>%
 
 # Define arguments
 
-y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 
@@ -74,9 +74,9 @@ source("01_functions/36_wrapper.R")
 
 ##Eventually needs a a_model for the weights on the exposure
 
-y_model <- c("exposure*(time + I(time^3))") 
+y_model <- c("exposure*(time + I(time^2) + I(time^3))") 
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
-c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+c_model <- c("exposure", "pf_f", "age_f", "hx")
 
 results_ipw <- direct_ipw_pr_helper(
   data,
@@ -111,7 +111,7 @@ source("01_functions/35_bootsamples.R")
 source("01_functions/35_wrapper.R")
 
 
-y_model <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 number_rows <- 60
 
 output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
@@ -141,8 +141,8 @@ source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
-factors_outcome <- c("exposure*(time + I(time^3))") 
-factors_cens <- c("exposure", "pf_f", "age_f", "hg_f")
+factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))") 
+factors_cens <- c("exposure", "pf_f", "age_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)")
 
 rows <- 60
@@ -181,8 +181,8 @@ source("01_functions/38_total_ipwsh_prost.R")
 source("01_functions/38_bootsamples.R")
 source("01_functions/38_wrapper.R")
 
-y_model <- c("exposure*(time + I(time^3))")
-c_model <- c("exposure", "pf_f", "age_f", "hg_f")
+y_model <- c("exposure*(time + I(time^2) +  I(time^3))")
+c_model <- c("exposure", "pf_f", "age_f", "hx")
 number_rows <- 60
 
 
@@ -211,13 +211,13 @@ source("01_functions/37_total_gf_prost.R")
 source("01_functions/37_bootsamples.R")
 source("01_functions/37_wrapper.R")
 
-factors_outcome <- c("exposure*(time + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
+factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 
 rows <- 60
 
-results_totalgf <- total_gf_helper(data, factors_outcome = y_model,
-                                    factors_cr = d_model,
+results_totalgf <- total_gf_helper(data, factors_outcome = factors_outcome,
+                                    factors_cr = factors_cr,
                                    rows = rows,
                                     n = 100, seed = 123)
 
