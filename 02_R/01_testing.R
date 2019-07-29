@@ -141,7 +141,11 @@ source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
+<<<<<<< HEAD
 factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))") 
+=======
+factors_outcome <- c("exposure*(time + I(time^3))") 
+>>>>>>> 9c1733d5628da8a0e02f2825b6cb7c09e2227d8a
 factors_cens <- c("exposure", "pf_f", "age_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)")
 
@@ -181,7 +185,11 @@ source("01_functions/38_total_ipwsh_prost.R")
 source("01_functions/38_bootsamples.R")
 source("01_functions/38_wrapper.R")
 
+<<<<<<< HEAD
 y_model <- c("exposure*(time + I(time^2) +  I(time^3))")
+=======
+y_model <- c("exposure*(time + I(time^3))")
+>>>>>>> 9c1733d5628da8a0e02f2825b6cb7c09e2227d8a
 c_model <- c("exposure", "pf_f", "age_f", "hx")
 number_rows <- 60
 
