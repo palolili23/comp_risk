@@ -128,26 +128,27 @@ results_ipw <- direct_ipw_pr_helper(
 ``` {r, warning=FALSE, message= FALSE}
 effect_measures_ipw_cr <- risk_diff_ratio(results_ipw)
 
-effect_measures_ipw_cr %>% 
-  head() %>% 
+effect_measures_ipw_cr %>%
+  head() %>%
   kable() %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed", "responsive"),
     full_width = F,
-    font_size = 14)
+    font_size = 14
+  )
 
 ```
 For time point 60
 
 ```{r, message= FALSE, warning = FALSE}
 effect_measures_ipw_cr %>%
-  filter(Time ==  59) %>%
+  filter(time == 60) %>%
   kable() %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed", "responsive"),
     full_width = F,
-    font_size = 14)
-
+    font_size = 14
+  )
 ```
 
 
@@ -218,7 +219,7 @@ output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
 effect_measures_dir_gf <- risk_diff_ratio(output_dir_gf)
 
 effect_measures_dir_gf %>%
-  filter(Time ==  59) %>%
+  filter(time == 60) %>%
   kable() %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed", "responsive"),
@@ -293,7 +294,7 @@ Observe that the estimands for the total effects are different that for the dire
 effect_measures_ipwsh <- risk_diff_ratio(results_ipwsh)
 
 effect_measures_ipwsh %>%
-  filter(Time == 59) %>%
+  filter(time == 60) %>%
   kable() %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed", "responsive"),
@@ -337,8 +338,9 @@ d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 number_rows <- 60
 ```
 
-3. Use the `total_gf_helper` to get the estimates from the observed dataset and the bootstrap samples.
-To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/37_total_gf_prost.R)
+3. Use the `total_ipwsh_helper` to get the estimates from the observed dataset and the bootstrap sample.
+
+To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/39_total_ipwcs_prost.R)
 
 ```{r, message= FALSE, warning = FALSE}
 results_totalgf <-
@@ -354,11 +356,12 @@ results_totalgf <-
 
 4. Estimate the point estimates and confidence intervals.
 
-```{r, message= FALSE, warning = FALSE}
-effect_measures_totalgf <- risk_diff_ratio(results_totalgf)
 
-effect_measures_totalgf %>%
-  filter(Time == 59) %>%
+```{r, message= FALSE, warning = FALSE}
+results_totalgf <- risk_diff_ratio(results_totalgf)
+
+results_totalgf %>%
+  filter(time == 59) %>%
   kable() %>%
   kable_styling(
     bootstrap_options = c("hover", "condensed", "responsive"),
@@ -371,17 +374,11 @@ effect_measures_totalgf %>%
 5. Cumulative incidence curves:
 
 ```{r, message= FALSE, warning = FALSE}
-cif_curves(results_totalgf, control = "placebo",
+cif_curves(results_ipwsh, control = "placebo",
            intervention = "High-dose DES",
            title = "Total effect of DES in Prostate cancer death with IPWsh",
            xaxis = "months",
            limit_end = 60,
            breaks = 10,
            max_cif = 0.5)
-```
-
-
-## Session info
-```{r}
-devtools::session_info()
 ```
