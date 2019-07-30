@@ -5,7 +5,7 @@ total_ipwsh_pr <- function(data,
   
   #transform from wide to long and create necessary variables
   
-  n_expanding_rows <- rows + 1
+  n_expanding_rows <- rows
   
   data_long <- data[rep(seq(nrow(data)), n_expanding_rows),]
   
@@ -24,6 +24,14 @@ total_ipwsh_pr <- function(data,
     filter(time <= max ) %>% 
     ungroup() %>%
     arrange(id, time)
+  
+  data_long %<>% 
+    mutate(
+      outcome_plr = case_when(
+        cens_plr == 1 ~ NA_real_,
+        competing_plr == 1 ~ NA_real_,
+        TRUE ~ outcome_plr),
+      competing_plr = ifelse(cens_plr == 1, NA, competing_plr))
   
   # Create weights ----------------------------------------------------------
   model_denom_cens <-

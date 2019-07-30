@@ -4,7 +4,7 @@ direct_gf_pr <- function(data, factors_outcome,
   
   # To go from wide to long when only outcome changes over time, we will create as many rows as timepoints.
   
-  n_expanding_rows <- rows + 1
+  n_expanding_rows <- rows
   
   data_long <- data[rep(seq(nrow(data)), n_expanding_rows), ]
   
@@ -26,6 +26,14 @@ direct_gf_pr <- function(data, factors_outcome,
     filter(time <= max) %>%
     ungroup() %>%
     arrange(id, time)
+  
+  data_long %<>% 
+    mutate(
+      outcome_plr = case_when(
+        cens_plr == 1 ~ NA_real_,
+        competing_plr == 1 ~ NA_real_,
+        TRUE ~ outcome_plr),
+      competing_plr = ifelse(cens_plr == 1, NA, competing_plr))
   
   # fits a model for the outcome using the vector of parameters defined in the argument "factors_outcome".
   model <-
