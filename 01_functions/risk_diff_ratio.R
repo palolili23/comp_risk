@@ -31,6 +31,7 @@ risk_diff_ratio <- function(data_results){
     unite(`RD CI95%`, c("rd_min", "rd_max"), sep =", ", remove = TRUE) %>%
     unite(`RR CI95%`, c("rr_min", "rr_max"), sep =", ", remove = TRUE) %>%
     rename(
+      Time = time,
       `Risk Ya=1` = exposure,
       `Risk Ya=0` = control,
       `Risk Rifference` = rd,
