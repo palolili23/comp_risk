@@ -103,7 +103,7 @@ cif_curves(
 
 # surv_curves(results_ipw, breaks = 10, limit_end = 60)
 
-effect_measures_ipw_cr %>% filter(time == 60)
+effect_measures_ipw_cr %>% filter(Time == 59)
 
 # Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
 source("01_functions/35_direct_gf_prost.R")
@@ -134,18 +134,16 @@ cif_curves(
 )
 
 # surv_curves(output, breaks = 10)
-effect_measures_dir_gf %>% filter(time ==60)
+effect_measures_dir_gf %>% filter(time ==59)
 
 # Total effects with IPW: Cause-specific hazard approach -----------------
 source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
-<<<<<<< HEAD
 factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))") 
-=======
+
 factors_outcome <- c("exposure*(time + I(time^3))") 
->>>>>>> 9c1733d5628da8a0e02f2825b6cb7c09e2227d8a
 factors_cens <- c("exposure", "pf_f", "age_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)")
 
@@ -177,7 +175,7 @@ cif_curves(results_ipwcs, control = "placebo",
            max_cif = 0.5)
 
 # surv_curves(results_ipwcs, breaks = 10)
-effect_measures_ipwcs %>% filter(time ==60)
+effect_measures_ipwcs %>% filter(time ==59)
 
 
 # Total effects with IPW sub-hazard approach ------------------------------------------------
@@ -185,11 +183,8 @@ source("01_functions/38_total_ipwsh_prost.R")
 source("01_functions/38_bootsamples.R")
 source("01_functions/38_wrapper.R")
 
-<<<<<<< HEAD
 y_model <- c("exposure*(time + I(time^2) +  I(time^3))")
-=======
-y_model <- c("exposure*(time + I(time^3))")
->>>>>>> 9c1733d5628da8a0e02f2825b6cb7c09e2227d8a
+
 c_model <- c("exposure", "pf_f", "age_f", "hx")
 number_rows <- 60
 
@@ -211,7 +206,7 @@ cif_curves(results_ipwsh, control = "placebo",
            max_cif = 0.5)
 
 # surv_curves(output_total, breaks = 10)
-effect_measures_ipwsh %>% filter(time ==60)
+effect_measures_ipwsh %>% filter(time ==59)
 
 
 # Total effects with G-formula ------------------------------------------------
@@ -232,7 +227,7 @@ results_totalgf <- total_gf_helper(data, factors_outcome = factors_outcome,
 
 effect_measures_gf <- risk_diff_ratio(results_totalgf) 
 
-effect_measures_gf %>% filter(time == 60)
+effect_measures_gf %>% filter(Time ==59)
 
 cif_curves(results_totalgf, control = "placebo",
            intervention = "High-dose DES",
@@ -243,10 +238,10 @@ cif_curves(results_totalgf, control = "placebo",
 
 # surv_curves(results_totalgf, breaks = 10)
 
-effect_measures_ipw_cr %>% filter(time == 60) %>% 
+effect_measures_ipw_cr %>% filter(Time == 59) %>% 
   mutate(estimate = "direct ipw") %>% 
-  bind_rows((effect_measures_dir_gf %>% filter(time ==60) %>%  mutate(estimate = "direct G-f")),
-            (effect_measures_ipwsh %>% filter(time ==60) %>%  mutate(estimate = "Total IPWsh")),
-            (effect_measures_ipwcs %>% filter(time ==60) %>%  mutate(estimate = "Total IPWcs")), 
-            (effect_measures_gf %>% filter(time ==60)) %>%  mutate(estimate = "Total G-f"))
+  bind_rows((effect_measures_dir_gf %>% filter(time ==59) %>%  mutate(estimate = "direct G-f")),
+            (effect_measures_ipwsh %>% filter(time ==59) %>%  mutate(estimate = "Total IPWsh")),
+            (effect_measures_ipwcs %>% filter(time ==59) %>%  mutate(estimate = "Total IPWcs")), 
+            (effect_measures_gf %>% filter(time ==59)) %>%  mutate(estimate = "Total G-f"))
  
