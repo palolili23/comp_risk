@@ -47,7 +47,7 @@ direct_ipw_pr <- function(data,
     reformulate(termlabels = factors_cr, response = "no_cr")
   
   denom_cr <-
-    glm(model_denom_cr, data = data_long, family = quasibinomial())
+    glm(model_denom_cr, data = data_long, family = binomial())
   
   # fits a model for not being censored using the vector of parameters defined in the argument "factors_cens".
   # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial()) for stabilized weights
@@ -57,8 +57,8 @@ direct_ipw_pr <- function(data,
   
   denom_cens <-
     glm(model_denom_cens,
-        data = subset(data_long, time >= 50 & no_cr == 1),
-        family = quasibinomial())
+        data = subset(data_long, time > 50),
+        family = binomial)
   
   # We use the previous models to calculate the weights for C and D.
   
@@ -68,7 +68,7 @@ direct_ipw_pr <- function(data,
       cr_denom = predict(denom_cr, data_long, type = "response"),
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom) #This is specific of this study because no one was censored before time 50) #because if you had the competing event you are not censored
+      cens_denom = ifelse(time <= 50, 1, cens_denom) #This is specific of this study because no one was censored before time 50) #because if you had the competing event you are not censored
     ) %>%
     group_by(id) %>%
     mutate(
@@ -81,7 +81,6 @@ direct_ipw_pr <- function(data,
     mutate(
       cr_sw = cr_num_cum / cr_denom_cum,
       cens_sw = cens_num_cum / cens_denom_cum,
-      cens_sw = ifelse(competing_plr == 1, 1, cens_sw),
       sw = cr_sw * cens_sw
     )
   
@@ -98,7 +97,7 @@ direct_ipw_pr <- function(data,
   
   adj_plr <- glm(model,
                  data = data_long,
-                 family = quasibinomial(),
+                 family = binomial,
                  weights = sw)
   
   # creates two cloned datasets with all timepoints for all individuals
