@@ -47,7 +47,7 @@ direct_ipw_pr <- function(data,
     reformulate(termlabels = factors_cr, response = "no_cr")
   
   denom_cr <-
-    glm(model_denom_cr, data = data_long, family = binomial())
+    glm(model_denom_cr, data = data_long, family = quasibinomial())
   
   # fits a model for not being censored using the vector of parameters defined in the argument "factors_cens".
   # num_cens <- glm(no_cens ~ 1, data = data_long, family = binomial()) for stabilized weights
@@ -58,7 +58,7 @@ direct_ipw_pr <- function(data,
   denom_cens <-
     glm(model_denom_cens,
         data = subset(data_long, time > 50),
-        family = binomial)
+        family = quasibinomial())
   
   # We use the previous models to calculate the weights for C and D.
   
@@ -97,7 +97,7 @@ direct_ipw_pr <- function(data,
   
   adj_plr <- glm(model,
                  data = data_long,
-                 family = binomial,
+                 family = quasibinomial(),
                  weights = sw)
   
   # creates two cloned datasets with all timepoints for all individuals
