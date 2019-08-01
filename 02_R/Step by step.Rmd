@@ -92,7 +92,6 @@ We will also create an object with the max time of follow up.
 y_model <- c("exposure*(time + I(time^2) + I(time^3))") 
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 c_model <- c("exposure", "pf_f", "age_f", "hx")
-number_rows <- 60
 ```
 
 3. Use the function `direct_ipw_pr_helper`, which requeries the following arguments:
@@ -107,7 +106,7 @@ results_ipw <- direct_ipw_pr_helper(
   factors_outcome = y_model,
   factors_cens = c_model,
   factors_cr = d_model,
-  rows = number_rows,
+  rows = 60,
   seed = 123,
   n = 100
 )
@@ -197,7 +196,6 @@ source("../01_functions/35_wrapper.R")
 
 ```{r}
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
-number_rows <- 60
 ```
 
 3. Use the `direct_gf_pr_helper` to get the estimates from the observed dataset and the bootstrap sample.
@@ -205,11 +203,14 @@ number_rows <- 60
 To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/35_direct_gf_prost.R)
 
 ```{r}
-output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
-                              n = 100,
-                              seed = 123, 
-                              rows = number_rows,
-                              surv_model = direct_gf_pr)
+output_dir_gf <- direct_gf_pr_helper(
+  data,
+  factors_outcome = y_model,
+  n = 100,
+  seed = 123,
+  rows = 60,
+  surv_model = direct_gf_pr
+)
 ```
 
 4. To get the results with confidence intervals, we will only present at time 60.
@@ -262,7 +263,6 @@ source("../01_functions/38_wrapper.R")
 ```{r}
 y_model <- c("exposure*(time + I(time^2) + I(time^3))")
 c_model <- c("exposure", "pf_f", "age_f", "hx")
-number_rows <- 60
 ```
 
 3. Use the `total_ipwsh_helper` to get the estimates from the observed dataset and the bootstrap sample.
@@ -270,10 +270,14 @@ number_rows <- 60
 To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/39_total_ipwcs_prost.R)
 
 ```{r, message= FALSE, warning = FALSE}
-results_ipwsh <- total_ipwsh_helper(data, factors_outcome = y_model,
-                                   factors_cens = c_model,
-                                   rows = number_rows,
-                                   n = 100, seed = 123)
+results_ipwsh <- total_ipwsh_helper(
+  data,
+  factors_outcome = y_model,
+  factors_cens = c_model,
+  rows = 60,
+  n = 100,
+  seed = 123
+)
 ```
 
 4. Estimate the point estimates and confidence intervals.
@@ -306,18 +310,83 @@ effect_measures_ipwsh %>%
 5. Cumulative incidence curves:
 
 ```{r, message= FALSE, warning = FALSE}
-cif_curves(results_ipwsh, control = "placebo",
-           intervention = "High-dose DES",
-           title = "Total effect of DES in Prostate cancer death with IPWsh",
-           xaxis = "months",
-           limit_end = 60,
-           breaks = 10,
-           max_cif = 0.5)
+cif_curves(
+  results_ipwsh,
+  control = "placebo",
+  intervention = "High-dose DES",
+  title = "Total effect of DES in Prostate cancer death with IPWsh",
+  xaxis = "months",
+  limit_end = 60,
+  breaks = 10,
+  max_cif = 0.5
+)
 ```
 
 ### Total effect IPWcs
 
-Work in progress
+
+1. Call functions:
+
+```{r}
+source("../01_functions/39_total_ipwcs_prost.R")
+source("../01_functions/39_bootsamples.R")
+source("../01_functions/39_wrapper.R")
+```
+
+2. Define required models:
+
+```{r}
+y_model <- c("exposure*(time + I(time^2) + I(time^3))") 
+c_model <- c("exposure", "pf_f", "age_f", "hx")
+d_model <- c("exposure", "time", "I(time^2)")
+```
+
+3. Use the `total_ipwcs_helper` to get the estimates from the observed dataset and the bootstrap samples.
+To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/39_total_ipwcs_prost.R)
+
+```{r, message= FALSE, warning = FALSE}
+results_ipwcs <- total_ipwcs_helper(
+  data,
+  factors_outcome = y_model,
+  factors_cens = c_model,
+  factors_cr = d_model,
+  rows = 60,
+  n = 100,
+  seed = 123
+)
+```
+
+4. Estimate the point estimates and confidence intervals.
+
+```{r, message= FALSE, warning = FALSE}
+effect_measures_totalgf <- risk_diff_ratio(results_ipwcs)
+
+effect_measures_totalgf %>%
+  filter(Time == 59) %>%
+  kable() %>%
+  kable_styling(
+    bootstrap_options = c("hover", "condensed", "responsive"),
+    full_width = F,
+    font_size = 14
+  )
+
+```
+
+5. Cumulative incidence curves:
+
+```{r, message= FALSE, warning = FALSE}
+cif_curves(
+  results_ipwcs,
+  control = "placebo",
+  intervention = "High-dose DES",
+  title = "Total effect of DES in Prostate cancer death with IPWcs",
+  xaxis = "months",
+  limit_end = 60,
+  breaks = 10,
+  max_cif = 0.5
+)
+```
+
 
 ### Total effect G-formula
 
@@ -334,7 +403,6 @@ source("../01_functions/37_wrapper.R")
 ```{r}
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
-number_rows <- 60
 ```
 
 3. Use the `total_gf_helper` to get the estimates from the observed dataset and the bootstrap samples.
@@ -346,7 +414,7 @@ results_totalgf <-
     data,
     factors_outcome = y_model,
     factors_cr = d_model,
-    rows = number_rows,
+    rows = 60,
     n = 100,
     seed = 123
   )
@@ -371,13 +439,16 @@ effect_measures_totalgf %>%
 5. Cumulative incidence curves:
 
 ```{r, message= FALSE, warning = FALSE}
-cif_curves(results_totalgf, control = "placebo",
-           intervention = "High-dose DES",
-           title = "Total effect of DES in Prostate cancer death with IPWsh",
-           xaxis = "months",
-           limit_end = 60,
-           breaks = 10,
-           max_cif = 0.5)
+cif_curves(
+  results_totalgf,
+  control = "placebo",
+  intervention = "High-dose DES",
+  title = "Total effect of DES in Prostate cancer death with G-formula",
+  xaxis = "months",
+  limit_end = 60,
+  breaks = 10,
+  max_cif = 0.5
+)
 ```
 
 
