@@ -134,32 +134,30 @@ cif_curves(
 )
 
 # surv_curves(output, breaks = 10)
-effect_measures_dir_gf %>% filter(time ==59)
+effect_measures_dir_gf %>% filter(Time ==59)
 
 # Total effects with IPW: Cause-specific hazard approach -----------------
 source("01_functions/39_total_ipwcs_prost.R")
 source("01_functions/39_bootsamples.R")
 source("01_functions/39_wrapper.R")
 
-factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))") 
-
-factors_outcome <- c("exposure*(time + I(time^3))") 
-factors_cens <- c("exposure", "pf_f", "age_f", "hx")
-factors_cr <- c("exposure", "time", "I(time^2)")
+y_model <- c("exposure*(time + I(time^2) + I(time^3))") 
+c_model <- c("exposure", "pf_f", "age_f", "hx")
+d_model <- c("exposure", "time", "I(time^2)")
 
 rows <- 60
 
 
-results_ipwcs <- total_ipwcs_pr(data, factors_outcome = y_model,
-                                    factors_cens = c_model,
-                                    factors_cr = d_model,
-                                    rows = number_rows)
+results_ipwcs <- total_ipwcs_pr(data, factors_outcome = factors_outcome,
+                                factors_cens = factors_cens,
+                                factors_cr = factors_cr,
+                                rows = 60)
 
 
 results_ipwcs <- total_ipwcs_helper(data, factors_outcome = y_model,
                                factors_cens = c_model,
                                factors_cr = d_model,
-                               rows = number_rows,
+                               rows = 60,
                                n = 100, seed = 123)
 
 
@@ -175,7 +173,7 @@ cif_curves(results_ipwcs, control = "placebo",
            max_cif = 0.5)
 
 # surv_curves(results_ipwcs, breaks = 10)
-effect_measures_ipwcs %>% filter(time ==59)
+effect_measures_ipwcs %>% filter (Time ==59)
 
 
 # Total effects with IPW sub-hazard approach ------------------------------------------------
@@ -206,7 +204,7 @@ cif_curves(results_ipwsh, control = "placebo",
            max_cif = 0.5)
 
 # surv_curves(output_total, breaks = 10)
-effect_measures_ipwsh %>% filter(time ==59)
+effect_measures_ipwsh %>% filter(Time ==59)
 
 
 # Total effects with G-formula ------------------------------------------------
@@ -240,8 +238,8 @@ cif_curves(results_totalgf, control = "placebo",
 
 effect_measures_ipw_cr %>% filter(Time == 59) %>% 
   mutate(estimate = "direct ipw") %>% 
-  bind_rows((effect_measures_dir_gf %>% filter(time ==59) %>%  mutate(estimate = "direct G-f")),
-            (effect_measures_ipwsh %>% filter(time ==59) %>%  mutate(estimate = "Total IPWsh")),
-            (effect_measures_ipwcs %>% filter(time ==59) %>%  mutate(estimate = "Total IPWcs")), 
-            (effect_measures_gf %>% filter(time ==59)) %>%  mutate(estimate = "Total G-f"))
+  bind_rows((effect_measures_dir_gf %>% filter(Time ==59) %>%  mutate(estimate = "direct G-f")),
+            (effect_measures_ipwsh %>% filter(Time ==59) %>%  mutate(estimate = "Total IPWsh")),
+            (effect_measures_ipwcs %>% filter(Time ==59) %>%  mutate(estimate = "Total IPWcs")), 
+            (effect_measures_gf %>% filter(Time ==59)) %>%  mutate(estimate = "Total G-f"))
  
