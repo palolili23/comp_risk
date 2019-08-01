@@ -7,8 +7,6 @@ total_ipwcs_pr <- function(data,
                            truncation_percentile = NULL) {
   
   #transform from wide to long and create necessary variables
-  n_expanding_rows <- rows
-  
   data_long <- data[rep(seq(nrow(data)), rows),]
   
   data_long %<>%
@@ -67,16 +65,15 @@ total_ipwcs_pr <- function(data,
     ungroup() %>%
     mutate(sw = cens_num_cum / cens_denom_cum)
   
-  if (is.null(truncation_percentile)) {
-    weights <- summary(data_long$sw)
-  } else{
+  if (!is.null(truncation_percentile)) {
     data_long <- data_long %>%
       mutate(sw = ifelse((
         sw > quantile(sw, truncation_percentile)
-      ), quantile(sw, truncation_percentile), sw))
-    weights <- summary(data_long$sw)
-  }
+      ), quantile(sw, truncation_percentile), sw))}
   
+  weights <- summary(data_long$sw)
+  
+  weights_hist <- data_long %>% ggplot(aes(sw)) + geom_histogram(bins = 50) 
   
   # fit of weighted hazards model
   model_y <- reformulate(termlabels = factors_outcome, response = "outcome_plr")
@@ -140,6 +137,6 @@ total_ipwcs_pr <- function(data,
     ungroup()
   
   output <- list(results,
-                 weights)
+                 weights, weights_hist)
   return(output)
 }

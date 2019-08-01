@@ -24,6 +24,7 @@ total_ipwcs_helper <- function(data,
     )
   
   weights <- results %>% pluck(2)
+  weights_hist <- results %>% pluck(3)
   
   bootresults <- bootsamples39(
     data,
@@ -39,5 +40,5 @@ total_ipwcs_helper <- function(data,
   
   binded <- results %>% pluck(1) %>% bind_rows(bootresults)
   
-  return(list(binded, weights))
+  return(list(binded, weights, weights_hist))
 }
