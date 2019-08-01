@@ -5,8 +5,7 @@ total_ipwcs_pr <- function(data,
                           rows = max(data$max)) {
   
   #transform from wide to long and create necessary variables
-  n_expanding_rows <- rows
-  
+
   data_long <- data[rep(seq(nrow(data)), rows),]
   
   data_long %<>%
