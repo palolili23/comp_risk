@@ -40,7 +40,7 @@ y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f",
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 c_model <- c("exposure", "pf_f", "age_f", "hg_f")
 
-number_rows <- 60
+
 # data %>% filter(cens == 1) %>% 
 #   ggplot(aes(max)) + geom_histogram()
 # data %>% filter(competing == 1) %>% 
@@ -84,7 +84,7 @@ results_ipw <- direct_ipw_pr_helper(
   factors_outcome = y_model,
   factors_cens = c_model,
   factors_cr = d_model,
-  rows = number_rows,
+  rows = 60,
   seed = 123,
   n = 100)
 
@@ -112,12 +112,11 @@ source("01_functions/35_wrapper.R")
 
 
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
-number_rows <- 60
 
 output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
                               n = 100,
                               seed = 123, 
-                              rows = number_rows,
+                              rows = 60,
                               surv_model = direct_gf_pr)
 
 effect_measures_dir_gf <- risk_diff_ratio(output_dir_gf)
@@ -144,15 +143,6 @@ source("01_functions/39_wrapper.R")
 y_model <- c("exposure*(time + I(time^2) + I(time^3))") 
 c_model <- c("exposure", "pf_f", "age_f", "hx")
 d_model <- c("exposure", "time", "I(time^2)")
-
-rows <- 60
-
-
-results_ipwcs <- total_ipwcs_pr(data, factors_outcome = factors_outcome,
-                                factors_cens = factors_cens,
-                                factors_cr = factors_cr,
-                                rows = 60)
-
 
 results_ipwcs <- total_ipwcs_helper(data, factors_outcome = y_model,
                                factors_cens = c_model,
@@ -215,11 +205,9 @@ source("01_functions/37_wrapper.R")
 factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 
-rows <- 60
-
 results_totalgf <- total_gf_helper(data, factors_outcome = factors_outcome,
                                     factors_cr = factors_cr,
-                                   rows = rows,
+                                   rows = 60,
                                     n = 100, seed = 123)
 
 
