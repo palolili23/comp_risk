@@ -3,10 +3,8 @@ direct_gf_pr <- function(data, factors_outcome,
   #transform from wide to long and create necessary variables
   
   # To go from wide to long when only outcome changes over time, we will create as many rows as timepoints.
-  
-  n_expanding_rows <- rows
-  
-  data_long <- data[rep(seq(nrow(data)), n_expanding_rows), ]
+
+  data_long <- data[rep(seq(nrow(data)), rows), ]
   
   # Groups by ID, creates a "time" variable.
   # Outcome_plr, competing_plr and cens_plr are 0 until the last row, when they developed one of the events.
@@ -41,7 +39,7 @@ direct_gf_pr <- function(data, factors_outcome,
   adj_plr <- glm(model, data = data_long, family = binomial)
   
   # creates two cloned datasets with all timepoints for all individuals
-  data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows), ]
+  data0 <- data1 <- data[rep(seq(nrow(data)), rows), ]
   
   # In one dataset we fix the exposure to 0 for all individuals.
   data0 %<>%

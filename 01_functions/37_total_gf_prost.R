@@ -3,9 +3,8 @@ total_gf_pr <- function(data,
                         factors_cr,
                         rows = max(data$max)) {
   #transform from wide to long and create necessary variables
-  n_expanding_rows <- rows
-  
-  data_long <- data[rep(seq(nrow(data)), n_expanding_rows), ]
+
+  data_long <- data[rep(seq(nrow(data)), rows), ]
   
   data_long %<>%
     group_by(id) %>%
@@ -37,7 +36,7 @@ total_gf_pr <- function(data,
   adj_plr_cr <- glm(model_cr, data = data_long, family = binomial)
   
   #create clones
-  data0 <- data1 <- data[rep(seq(nrow(data)), n_expanding_rows),]
+  data0 <- data1 <- data[rep(seq(nrow(data)), rows),]
   
   #predict probabilities when exposure = 0
   data0 %<>%
