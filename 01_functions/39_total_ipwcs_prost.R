@@ -37,7 +37,7 @@ total_ipwcs_pr <- function(data,
   denom_cens <- 
     glm(
     model_denom_cens,
-    data = subset(data_long, time >= 50 & no_cr == 1),
+    data = subset(data_long, time > 50),
     family = quasibinomial()
   )
   
@@ -45,14 +45,13 @@ total_ipwcs_pr <- function(data,
     mutate(
       cens_num = 1,
       cens_denom = predict(denom_cens, data_long, type = "response"),
-      cens_denom = ifelse(time < 50, 1, cens_denom)
+      cens_denom = ifelse(time <= 50, 1, cens_denom)
     ) %>%
     group_by(id) %>%
     mutate(cens_num_cum = 1,
            cens_denom_cum = cumprod(cens_denom)) %>%
     ungroup() %>%
-    mutate(sw = cens_num_cum / cens_denom_cum,
-           sw = ifelse(competing_plr == 1, 1, sw))
+    mutate(sw = cens_num_cum / cens_denom_cum)
   
   # data_long <- data_long %>%
   #   mutate(sw = ifelse((sw > quantile(sw, 0.95)), quantile(sw, 0.95), sw))
@@ -75,15 +74,17 @@ total_ipwcs_pr <- function(data,
     ungroup()
   
   data0 <- data0 %>%
-    mutate(py = 1 - predict(adj_plr_y, newdata = data0, type = "response"),
-           pd = 1 - predict(adj_plr_cr, newdata = data0, type = "response")) %>%
+    mutate(py = predict(adj_plr_y, newdata = data0, type = "response"),
+           pd = predict(adj_plr_cr, newdata = data0, type = "response")) %>%
     arrange(id, time) %>%
     group_by(id) %>%
     mutate(
-      py_k1 = py * pd,
-      s = cumprod(py_k1),
-      cif = 1 - s
-    ) %>%
+      s = (1 - py)*(1 - pd),
+      cum_s = cumprod(s),
+      s_lag = lag(cum_s),
+      cif = py * (1 - pd) * s_lag, 
+      cif = ifelse(is.na(cif), (py * (1 - pd)), cif), #This is for time 0
+      cif_cum = cumsum(cif)) %>%
     ungroup()
   
   #predict probabilities when exposure = 1
@@ -94,24 +95,26 @@ total_ipwcs_pr <- function(data,
     ungroup()
   
   data1 %<>%
-    mutate(py = 1 - predict(adj_plr_y, newdata = data1, type = "response"),
-           pd = 1 - predict(adj_plr_cr, newdata = data1, type = "response")) %>%
+    mutate(py = predict(adj_plr_y, newdata = data1, type = "response"),
+           pd = predict(adj_plr_cr, newdata = data1, type = "response")) %>%
     arrange(id, time) %>%
     group_by(id) %>%
     mutate(
-      py_k1 = py * pd,
-      s = cumprod(py_k1),
-      cif = 1 - s
-    ) %>%
+      s = (1 - py)*(1 - pd),
+      cum_s = cumprod(s),
+      s_lag = lag(cum_s),
+      cif = py * (1 - pd) * s_lag, 
+      cif = ifelse(is.na(cif), (py * (1 - pd)), cif), #This is for time 0
+      cif_cum = cumsum(cif)) %>%
     ungroup()
   
   #combine sets and estimate the mean_survival
   results <- data0 %>%
     bind_rows(data1) %>%
-    select(time, exposure, s, cif) %>%
+    select(time, exposure, cum_s, cif_cum) %>%
     group_by(time, exposure) %>%
-    summarize(mean_survival = mean(s),
-              mean_cif = mean(cif)) %>%
+    summarize(mean_survival = mean(cum_s),
+              mean_cif = mean(cif_cum)) %>%
     ungroup()
 
   return(results)
