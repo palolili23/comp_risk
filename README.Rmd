@@ -28,7 +28,7 @@ The estimands are presented as follows:
 
 **Total Effects:**
 
-* Via G-formula (37) (*In process*)
+* Via G-formula (37)
 
 * Via IPW Sub-distribution hazard (38)
 
