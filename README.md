@@ -1,8 +1,8 @@
 
 # Project on Competing Risks
 
-This repository contains code to estimate the different estimands
-proposed in the following paper [by Young et
+This repository contains code *(written in tidyverse)* to estimate the
+different estimands proposed in the following paper [by Young et
 al](https://arxiv.org/abs/1806.06136).
 
 The example dataset is **Byar & Greene prostate cancer data**,
@@ -11,7 +11,7 @@ downloaded from the following
 
 The idea is to come up with clean*(ish)* code that can be adapted to
 other datasets. The example includes a time-fixed exposure
-(randomization to 1 of 2 treatments) and covariates only measured at
+(randomization of 2 treatments) and covariates only measured at
 baseline.
 
 The estimands are presented as follows:
@@ -28,18 +28,19 @@ The estimands are presented as follows:
 
   - Via IPW Sub-distribution hazard (38)
 
-  - Via IPW Cause-specific hazard (39) (*In process*)
+  - Via IPW Cause-specific hazard (39)
 
 Currently, the folder `01_functions` contains the code for the
 following:
 
-  - `n_estimate_function`: Is the function for the estimate (indicated
+  - `n_estimand_function`: Is the function for the estimand (indicated
     by the prefix number)
 
-  - `n_bootsamples`: The boostrap function for the estimate
+  - `n_bootsamples`: The boostrap function for the estimand
 
-  - `n_wrapper`: A function that wraps the estimate and bootsamples
-    results, creates a tibble with all the results for all timepoints.
+  - `n_wrapper`: A function that wraps the estimand and bootsamples
+    results, creates a tibble with all the results for all timepoints
+    (for bootsamples).
 
   - `risk_diff_ratio`: Uses the output from `n_wrapper` to calculate:
     
@@ -58,4 +59,5 @@ following:
 An example of how to use the code is available on the following link:
 <https://palolili23.github.io/comp_risk/02_R/Step_by_step.html>
 
-*Next steps: Use an observational dataset and adapt the functions.*
+*Next steps: the folder `03_generalfx` contains in process work to make
+the functions more generalizable*
