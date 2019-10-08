@@ -1,7 +1,7 @@
 ---
 title: "Guide CR"
-author: "Paloma RS"
-date: "8-7-2019"
+author: "L. Paloma Rojas-Saunero"
+date: '`r Sys.Date()`'
 output: 
   html_document: 
     toc: TRUE
@@ -94,7 +94,7 @@ c_model <- c("exposure", "pf_f", "age_f", "hx")
 ```
 
 3. Use the function `direct_ipw_pr_helper`, which requeries the following arguments:
-data, surv_model (estimand function), factors_outcome (parameters for the outcome), factors_cens (parameters for the censoring), factors_cr (parameters for the competing event), rows (the administrative censoring time, by default uses the max time of follow up but can be changed to an earlier time of censoring), seed, n (number of bootstraps).
+data, surv_model (estimator function), factors_outcome (parameters for the outcome), factors_cens (parameters for the censoring), factors_cr (parameters for the competing event), rows (the administrative censoring time, by default uses the max time of follow up but can be changed to an earlier time of censoring), seed, n (number of bootstraps).
 
 To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/36_direct_ipw_prost.R)
 
@@ -126,6 +126,7 @@ results_ipw <- direct_ipw_pr_helper(
 effect_measures_ipw_cr <- risk_diff_ratio(results_ipw)
 
 effect_measures_ipw_cr %>% 
+  filter(Time ==  59) %>%
   head() %>% 
   kable() %>%
   kable_styling(
@@ -134,19 +135,6 @@ effect_measures_ipw_cr %>%
     font_size = 14)
 
 ```
-For time point 60
-
-```{r, message= FALSE, warning = FALSE}
-effect_measures_ipw_cr %>%
-  filter(Time ==  59) %>%
-  kable() %>%
-  kable_styling(
-    bootstrap_options = c("hover", "condensed", "responsive"),
-    full_width = F,
-    font_size = 14)
-
-```
-
 
 5. Plot the cumulative incidence over time and the survival probability over time.
 
