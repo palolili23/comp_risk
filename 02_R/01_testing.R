@@ -6,34 +6,34 @@ source("01_functions/survival_graph.R")
 
 # Data setup --------------------------------------------------------------
 
-data <- import("00_rawdata/prostate_data.RData")
+data <- import("00_rawdata/prostate.csv")
 
-
-data <- data %>% 
-  filter(rx == 1 | rx == 4) %>% 
-  mutate(rx = ifelse(rx == 4, 1, 0),
-         death = case_when(
-           status == 1 ~ 0,
-           status == 2 ~ 1,
-           TRUE ~ 2),
-         death_pr = ifelse(death == 1, 1, 0),
-         death_other = ifelse(death == 2, 1, 0),
-         cens = ifelse(status == 1, 1, 0),
-         age_f = case_when(
-           age <= 59 ~ 1,
-           age >59 & age < 75 ~ 2,
-           age >= 75 ~ 3),
-         age_f = as.factor(age_f),
-         hg_f = ifelse(hg < 12, 1, 0),
-         hg_f = as.factor(hg_f),
-         pf_f = ifelse(pf == 1, 0, 1),
-         pf_f = as.factor(pf_f)) %>% 
-  rename(id = patno,
-         max = dtime,
-         exposure = rx,
-         outcome = death_pr,
-         competing = death_other) 
-
+data <- data %>%
+  filter(rx == "placebo" | rx == "5.0 mg estrogen") %>%
+  mutate(
+    rx = ifelse(rx == "5.0 mg estrogen", 1, 0),
+    death = case_when(status == "alive" ~ 0,
+                      status == "dead - prostatic ca" ~ 1,
+                      TRUE ~ 2),
+    death_pr = ifelse(death == 1, 1, 0),
+    death_other = ifelse(death == 2, 1, 0),
+    cens = ifelse(status == "alive", 1, 0),
+    age_f = case_when(age < 60 ~ 1,
+                      age >= 60 & age < 75 ~ 2,
+                      age >= 75 ~ 3),
+    age_f = as.factor(age_f),
+    hg_f = ifelse(hg < 12, 1, 0),
+    hg_f = as.factor(hg_f),
+    pf_f = ifelse(pf == "normal activity", 1, 0),
+    pf_f = as.factor(pf_f)
+  ) %>%
+  rename(
+    id = patno,
+    max = dtime,
+    exposure = rx,
+    outcome = death_pr,
+    competing = death_other
+  ) 
 # Define arguments
 
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
@@ -80,13 +80,12 @@ c_model <- c("exposure", "pf_f", "age_f", "hx")
 
 results_ipw <- direct_ipw_pr_helper(
   data,
-  surv_model = direct_ipw_pr,
   factors_outcome = y_model,
   factors_cens = c_model,
   factors_cr = d_model,
   rows = 60,
   seed = 123,
-  n = 100)
+  n = 50)
 
 effect_measures_ipw_cr <- risk_diff_ratio(results_ipw)
 
@@ -98,7 +97,7 @@ cif_curves(
   xaxis = "months",
   limit_end = 60,
   breaks = 10,
-  max_cif = 0.5
+  max_cif = 0.6
 )
 
 # surv_curves(results_ipw, breaks = 10, limit_end = 60)
@@ -106,18 +105,17 @@ cif_curves(
 effect_measures_ipw_cr %>% filter(Time == 59)
 
 # Direct effects with g-formula Pr(Ya,c=0,d=0) -------------------------------------------------------------------------
-source("01_functions/35_direct_gf_prost.R")
-source("01_functions/35_bootsamples.R")
-source("01_functions/35_wrapper.R")
+source("01_functions/gformula.R")
+source("01_functions/gformula_boot.R")
+source("01_functions/gformula_wrapper.R")
 
+output_dir_gf <- gformula_wrapper(data,
+                                    factors_outcome = y_model,
+                                    rows = 60, 
+                                    n = 100, 
+                                    seed = 123)
 
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
-
-output_dir_gf <- direct_gf_pr_helper(data, factors_outcome = y_model,
-                              n = 100,
-                              seed = 123, 
-                              rows = 60,
-                              surv_model = direct_gf_pr)
 
 effect_measures_dir_gf <- risk_diff_ratio(output_dir_gf)
 
@@ -129,10 +127,9 @@ cif_curves(
   xaxis = "months",
   limit_end = 60,
   breaks = 10,
-  max_cif = 0.5
+  max_cif = 0.6
 )
 
-# surv_curves(output, breaks = 10)
 effect_measures_dir_gf %>% filter(Time ==59)
 
 # Total effects with IPW: Cause-specific hazard approach -----------------
@@ -180,7 +177,7 @@ number_rows <- 60
 results_ipwsh <- total_ipwsh_helper(data, factors_outcome = y_model,
                                    factors_cens = c_model,
                                    rows = number_rows,
-                                   n = 100, seed = 123)
+                                   n = 50, seed = 123)
 
 
 effect_measures_ipwsh <- risk_diff_ratio(results_ipwsh)
@@ -191,25 +188,23 @@ cif_curves(results_ipwsh, control = "placebo",
            xaxis = "months",
            limit_end = 60,
            breaks = 10,
-           max_cif = 0.5)
+           max_cif = 0.6)
 
 # surv_curves(output_total, breaks = 10)
 effect_measures_ipwsh %>% filter(Time ==59)
 
 
 # Total effects with G-formula ------------------------------------------------
-source("01_functions/37_total_gf_prost.R")
-source("01_functions/37_bootsamples.R")
-source("01_functions/37_wrapper.R")
 
 factors_outcome <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 factors_cr <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 
-results_totalgf <- total_gf_helper(data, factors_outcome = factors_outcome,
-                                    factors_cr = factors_cr,
-                                   rows = 60,
-                                    n = 100, seed = 123)
-
+results_totalgf <- gformula_wrapper(data,
+                             factors_outcome = factors_outcome,
+                             factors_cr = factors_cr,
+                             rows = 60,
+                             n = 100, 
+                             seed = 123)
 
 effect_measures_gf <- risk_diff_ratio(results_totalgf) 
 
