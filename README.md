@@ -57,7 +57,7 @@ following:
       - `surv_curves`: creates the survival curves.
 
 An example of how to use the code is available on the following link:
-<https://palolili23.github.io/comp_risk/02_R/Step_by_step.html>
+<https://palolili23.github.io/comp_risk/02_R/Step-by-step.html>
 
 *Next steps: the folder `03_generalfx` contains in process work to make
 the functions more generalizable*
