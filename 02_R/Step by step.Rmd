@@ -1,6 +1,6 @@
 ---
 title: "Guide CR"
-author: "Paloma"
+author: "Paloma RS"
 date: "8-7-2019"
 output: 
   html_document: 
@@ -29,26 +29,25 @@ To get the same dataset required in the paper we followed the next steps:
 
 ```{r}
 
-data <- import("../00_rawdata/prostate_data.RData")
-
+data <- import(here::here("00_rawdata", "prostate.csv"))
 
 data <- data %>%
-  filter(rx == 1 | rx == 4) %>%
+  filter(rx == "placebo" | rx == "5.0 mg estrogen") %>%
   mutate(
-    rx = ifelse(rx == 4, 1, 0),
-    death = case_when(status == 1 ~ 0,
-                      status == 2 ~ 1,
+    rx = ifelse(rx == "5.0 mg estrogen", 1, 0),
+    death = case_when(status == "alive" ~ 0,
+                      status == "dead - prostatic ca" ~ 1,
                       TRUE ~ 2),
     death_pr = ifelse(death == 1, 1, 0),
     death_other = ifelse(death == 2, 1, 0),
-    cens = ifelse(status == 1, 1, 0),
-    age_f = case_when(age <= 60 ~ 1,
-                      age > 60 & age < 75 ~ 2,
+    cens = ifelse(status == "alive", 1, 0),
+    age_f = case_when(age < 60 ~ 1,
+                      age >= 60 & age < 75 ~ 2,
                       age >= 75 ~ 3),
     age_f = as.factor(age_f),
     hg_f = ifelse(hg < 12, 1, 0),
     hg_f = as.factor(hg_f),
-    pf_f = ifelse(pf == 1, 0, 1),
+    pf_f = ifelse(pf == "normal activity", 1, 0),
     pf_f = as.factor(pf_f)
   ) %>%
   rename(
@@ -102,13 +101,12 @@ To understand and adapt the function of the estimand please go to the following 
 ```{r}
 results_ipw <- direct_ipw_pr_helper(
   data,
-  surv_model = direct_ipw_pr,
   factors_outcome = y_model,
   factors_cens = c_model,
   factors_cr = d_model,
   rows = 60,
   seed = 123,
-  n = 100
+  n = 50
 )
 ```
 
@@ -161,33 +159,18 @@ cif_curves(
   xaxis = "months",
   limit_end = 60,
   breaks = 10,
-  max_cif = 0.5
+  max_cif = 0.6
 )
 ```
-
-
-```{r, warning=FALSE, message= FALSE}
-surv_curves(
-  results_ipw,
-  control = "placebo",
-  intervention = "High-dose DES",
-  title = "Direct effect of DES in Prostate cancer death with IPW",
-  xaxis = "months",
-  limit_end = 60,
-  breaks = 10,
-  max_cif = 0.5
-)
-```
-
 
 ### Direct effect via G-formula
 
 1. Call functions:
 
 ```{r}
-source("../01_functions/35_direct_gf_prost.R")
-source("../01_functions/35_bootsamples.R")
-source("../01_functions/35_wrapper.R")
+source("../01_functions/gformula.R")
+source("../01_functions/gformula_boot.R")
+source("../01_functions/gformula_wrapper.R")
 ```
 
 2. Define the arguments for the estimand function: A vector with the variables for the outcome model and define the max. timepoints.
@@ -198,18 +181,17 @@ source("../01_functions/35_wrapper.R")
 y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f", "hx")
 ```
 
-3. Use the `direct_gf_pr_helper` to get the estimates from the observed dataset and the bootstrap sample.
+3. Use the `gformula_wrapper` to get the estimates from the observed dataset and the bootstrap sample.
 
 To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/35_direct_gf_prost.R)
 
 ```{r}
-output_dir_gf <- direct_gf_pr_helper(
+output_dir_gf <- gformula_wrapper(
   data,
-  factors_outcome = y_model,
   n = 100,
-  seed = 123,
+  factors_outcome = y_model,
   rows = 60,
-  surv_model = direct_gf_pr
+  seed = 123
 )
 ```
 
@@ -275,7 +257,7 @@ results_ipwsh <- total_ipwsh_helper(
   factors_outcome = y_model,
   factors_cens = c_model,
   rows = 60,
-  n = 100,
+  n = 50,
   seed = 123
 )
 ```
@@ -393,9 +375,9 @@ cif_curves(
 1. Call functions:
 
 ```{r}
-source("../01_functions/37_total_gf_prost.R")
-source("../01_functions/37_bootsamples.R")
-source("../01_functions/37_wrapper.R")
+source("../01_functions/gformula.R")
+source("../01_functions/gformula_boot.R")
+source("../01_functions/gformula_wrapper.R")
 ```
 
 2. Define required models:
@@ -405,12 +387,12 @@ y_model <- c("exposure*(time + I(time^2) + I(time^3))", "pf_f", "age_f", "hg_f",
 d_model <- c("exposure", "time", "I(time^2)", "pf_f", "age_f", "hg_f", "hx")
 ```
 
-3. Use the `total_gf_helper` to get the estimates from the observed dataset and the bootstrap samples.
+3. Use the `gformula_wrapper` to get the estimates from the observed dataset and the bootstrap samples.
 To understand and adapt the function of the estimand please go to the following [page](https://github.com/palolili23/comp_risk/blob/master/01_functions/37_total_gf_prost.R)
 
 ```{r, message= FALSE, warning = FALSE}
 results_totalgf <-
-  total_gf_helper(
+  gformula_wrapper(
     data,
     factors_outcome = y_model,
     factors_cr = d_model,

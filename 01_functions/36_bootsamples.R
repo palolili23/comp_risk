@@ -3,8 +3,7 @@ bootsamples <- function(data, n,
                         factors_outcome,
                         factors_cens,
                         factors_cr,
-                        rows = max(data$max),
-                        surv_model){
+                        rows = max(data$max)){
   # Set seed
   set.seed(seed)
   
@@ -13,7 +12,7 @@ bootsamples <- function(data, n,
     d <- sample(1:nrow(data),size = nrow(data), replace = T)
     ds_b <- data[d,] %>%
     mutate(id = row_number()) 
-    return(surv_model(ds_b, 
+    return(direct_ipw_pr(ds_b, 
                       factors_outcome,
                       factors_cens,
                       factors_cr,
