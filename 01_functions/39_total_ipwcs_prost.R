@@ -28,7 +28,8 @@ total_ipwcs_pr <- function(data,
         cens_plr == 1 ~ NA_real_,
         competing_plr == 1 ~ NA_real_,
         TRUE ~ outcome_plr),
-      competing_plr = ifelse(cens_plr == 1, NA, competing_plr))
+      competing_plr = ifelse(cens_plr == 1, NA, competing_plr),
+      no_cr = ifelse(is.na(competing_plr), NA, no_cr))
   
   # Create weights ----------------------------------------------------------
   model_denom_cens <- 
