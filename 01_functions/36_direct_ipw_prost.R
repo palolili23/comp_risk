@@ -34,7 +34,8 @@ direct_ipw_pr <- function(data,
         cens_plr == 1 ~ NA_real_,
         competing_plr == 1 ~ NA_real_,
         TRUE ~ outcome_plr),
-      competing_plr = ifelse(cens_plr == 1, NA, competing_plr))
+      competing_plr = ifelse(cens_plr == 1, NA, competing_plr),
+      no_cr = ifelse(is.na(competing_plr), NA, no_cr))
   
   # Create weights ----------------------------------------------------------
   
@@ -116,11 +117,16 @@ direct_ipw_pr <- function(data,
   # cif is the cumulative incidence of the outcome
   
   data0 <- data0 %>%
-    mutate(p = 1 - predict(adj_plr, newdata = data0, type = "response")) %>%
+    mutate(py = predict(adj_plr, newdata = data0, type = "response"), 
+           pd = 0) %>%
     arrange(id, time) %>%
     group_by(id) %>%
-    mutate(s = cumprod(p),
-           cif = 1 - s) %>%
+    mutate(
+      s = (1 - py) * (1 - pd),
+      cum_s = cumprod(s),
+      cif = py * (1 - pd) * cum_s,
+      cif_cum = cumsum(cif)
+    ) %>%
     ungroup()
   
   # In this dataset we fix the exposure to 1 for all individuals
@@ -132,22 +138,27 @@ direct_ipw_pr <- function(data,
     ungroup()
   
   data1 %<>%
-    mutate(p = 1 - predict(adj_plr, newdata = data1, type = "response")) %>%
+    mutate(py = predict(adj_plr, newdata = data1, type = "response"),
+           pd = 0) %>%
     arrange(id, time) %>%
     group_by(id) %>%
-    mutate(s = cumprod(p),
-           cif = 1 - s) %>%
+    mutate(
+      s = (1 - py) * (1 - pd),
+      cum_s = cumprod(s),
+      cif = py * (1 - pd) * cum_s,
+      cif_cum = cumsum(cif)
+    ) %>%
     ungroup()
-  
   #combine sets and estimate the average survival probability and average cumulative incidence at each time
   
   results <- data0 %>%
     bind_rows(data1) %>%
-    select(time, exposure, s, cif) %>%
-    group_by(time, exposure) %>%
-    summarize(mean_survival = mean(s),
-              mean_cif = mean(cif)) %>%
+    select(time, exposure, cum_s, cif_cum) %>%
+    group_by(exposure, time) %>%
+    summarize(mean_survival = mean(cum_s),
+              mean_cif = mean(cif_cum)) %>%
     ungroup()
+  
   
   return(results)
 }
